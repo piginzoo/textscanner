@@ -1,0 +1,11 @@
+logs/
+data/
+data
+.idea
+*.pyc
+*/*.pyc
+__pycache__
+model
+data/small_vocab_en.txt
+data/small_vocab_fr.txt
+
