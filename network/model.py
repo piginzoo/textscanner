@@ -1,5 +1,5 @@
 from tensorflow.python.keras.models import Model
-from network.layers.fc_layer import FCNLayer
+from network.layers.fcn_layer import FCNLayer
 from network.layers.class_branch_layer import ClassBranchLayer
 from network.layers.geometry_branch_layer import GeometryBranch
 from network.layers.word_formation_layer import WordFormation
@@ -25,5 +25,3 @@ class TextScannerModel(Model):
         order_map = self.geometry_branch(x)
         result = self.word_formation(charactor_segmantation,order_map)
         return result
-
-

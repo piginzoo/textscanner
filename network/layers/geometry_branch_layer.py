@@ -17,6 +17,7 @@ class GeometryBranch(Layer):
         self.sequence_length = sequence_length
 
     def build(self, input_shape):
+        # order segment generation network
         self.conv_os1 = Convolution2D(filter=(3,3),kernel_size=16,strides=2) # 1/2
         self.conv_os2 = Convolution2D(filter=(3, 3), kernel_size=16, strides=2)  # 1/4
         self.conv_os3 = Convolution2D(filter=(3, 3), kernel_size=16, strides=2)  # 1/8
@@ -25,26 +26,32 @@ class GeometryBranch(Layer):
         self.dconv_os2 = Conv2DTranspose(filter=(3, 3), kernel_size=16, strides=2)  # 1/2
         self.dconv_os3 = Conv2DTranspose(filter=(3, 3), kernel_size=16, strides=2)  # 1
 
+        # localization map generation network
         self.conv_lm1 = Convolution2D((3,3),64)
         self.conv_lm2 = Convolution2D((1,1),self.sequence_length)
 
     def call(self, inputs, training=None):
-
         # generate Order Segmentation
-        x1 = self.conv_os1(inputs)
-        x2 = self.conv_os2(x1)
-        x3 = self.conv_os3(x2)
+        s1 = self.conv_os1(inputs)
+        s2 = self.conv_os2(s1)
+        s3 = self.conv_os3(s2)
+
         # [H,W,C] => [W,H*C]
-        x = tf.transpose(x3,(-1,x3.shape[]))
-        x = self.gru_os(x)
-        x = self.dconv_os3(x)
-        x = self.dconv_os2(x+x2)
-        x = self.dconv_os1(x+x1)
+        s = tf.transpose(s3,(1,0,2))
+        shape = s.get_shape().as_list()
+        s = tf.reshape(-1,shape[1]*shape[2])
+
+        # pass a GRU
+        s = self.gru_os(s)
+
+        s = self.dconv_os3(s)
+        s = self.dconv_os2(s+s2)
+        s = self.dconv_os1(s+s1)
 
         # generate Localization Map
-        y = self.conv_lm1(inputs)
-        y = self.conv_lm2(y)
+        q = self.conv_lm1(inputs)
+        q = self.conv_lm2(q)
 
-        r = x*y
-
-        return r
+        # multiplq S[N,H,W] * Q[1,H,W]
+        h = s*q
+        return h
