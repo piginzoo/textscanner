@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 import numpy as np
 import re
-import os
+import os,cv2
 from Levenshtein import *
 import logging
-
+from label.label import ImageLabel
 logger = logging.getLogger("Data_Util")
 
 rex = re.compile(' ')
 
-from main.conf import *
+from conf import *
 
 def caculate_edit_distance(preds, labels):
     distances = [distance(p,l) for p,l in zip(preds, labels)]
@@ -34,6 +34,13 @@ def id2str(ids,characters):
     str = [characters[int(id)] for id in ids] # 每个字
     result = ''.join(c for c in str if c != '\n')
     return result
+
+# id[1,3,56,4,35...] => xyzqf...
+def str2id(str_val,characters):
+    if not str_val in characters:
+        print("字符{}在字典中不存在".format(str_val))
+        return 0
+    return characters.index(str_val)
 
 
 # 加载字符集，charset.txt，最后一个是空格
@@ -78,6 +85,21 @@ def read_data_file(label_file_name, process_num=None):
         count+=1
     f.close()
     return data
+
+
+def load_labels(label_dir, process_num=None):
+    files = os.listdir(label_dir)
+    image_labels = []
+    for f in files:
+        name,ext = os.path.splitext(f)
+        if not ext.upper()!=".JSON": continue
+        image_path = os.path.join(label_dir,name+".jpg")
+        if not os.path.exists(image_path): continue
+        json_path = os.path.join(label_dir, f)
+        image_labels.apend([image_path,json_path])
+
+    return image_labels
+
 
 # !!! 此方法已废弃，加载目前采用fit_generator的multiprocess=True+Work=10的方式，不用自己去创建多进程了
 # 从文件中读取样本路径和标签值，并放入分箱中，为了是每个箱子多进程加载

@@ -4,7 +4,6 @@ from tensorflow.python.keras.layers import Conv2DTranspose
 from tensorflow.python.keras.layers import GRU
 import tensorflow as tf
 
-from tensorflow.nn import softmax
 
 class GeometryBranch(Layer):
     """
@@ -52,6 +51,6 @@ class GeometryBranch(Layer):
         q = self.conv_lm1(inputs)
         q = self.conv_lm2(q)
 
-        # multiplq S[N,H,W] * Q[1,H,W]
+        # multiplq S[N,H,W] * Q[1,H,W] =>  [N,H,W]
         h = s*q
         return h

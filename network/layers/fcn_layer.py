@@ -74,12 +74,3 @@ class FCNLayer(Layer):
         model = get_segmentation_model(img_input, o)
         model.model_name = "fcn_8"
         return inputs
-
-    def fcn_8_resnet50(self,n_classes,  input_height=416, input_width=608):
-        model = fcn_8(n_classes, get_resnet50_encoder,
-                      input_height=input_height, input_width=input_width)
-        model.model_name = "fcn_8_resnet50"
-        return model
-
-    def call(self, inputs, **kwargs):
-        pass

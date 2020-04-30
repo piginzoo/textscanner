@@ -1,8 +1,9 @@
 import cv2,numpy as np
 import logging
-
+import pyclipper
 logger = logging.getLogger(__name__)
-from matplotlib import pyplot as plt
+
+
 def show_image(img):
     # if img:plt.imshow(img)
     pass
@@ -39,8 +40,42 @@ def read_and_resize_image(image_names: list,conf):
     # logger.debug("图像的shape：%r",images.shape)
     return images
 
+def perimeter(polys):
+    # 计算周长
+    p = 0
+    nums = polys.shape[0]
+    for i in range(nums):
+        p += abs(np.linalg.norm(polys[i % nums] - polys[(i + 1) % nums]))
+    logger.debug('perimeter:{}'.format(p))
+    return p
+
+# 参考：https://blog.csdn.net/m_buddy/article/details/105614620
+# polys[N,2]
+def shrink_poly(polys, ratio=0.5):
+    if type(polys)==list: polys = np.array(polys)
+    """
+    收缩多边形
+    :param polys: 多边形
+    :param ratio: 收缩比例
+    :return:
+    """
+    area = abs(pyclipper.Area(polys)) # 面积
+    _perimeter = perimeter(polys) # 周长
+    polys_shrink = []
+    pco = pyclipper.PyclipperOffset()
+    if _perimeter:
+        # TODO:不知道为何这样计算???
+        d = area * (1 - ratio * ratio) / _perimeter
+        pco.AddPath(polys, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+        # 缩小后返回多边形
+        polys_shrink = pco.Execute(-d)
+    else:
+        return None
+
+    if len(polys_shrink)==0: return None
+    shrinked_bbox = np.array(polys_shrink[0])
+    return shrinked_bbox
 
 if __name__=="__main__":
-
-    from main import conf
-    read_and_resize_image("data/test.jpg",conf)
+    import conf
+    read_and_resize_image("data/test.jpg", conf)

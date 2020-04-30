@@ -1,5 +1,5 @@
-from utils import util, logger as log,label_utils
-from main import conf
+from utils import logger as log,label_utils
+import conf
 from network import model as _model
 import logging,cv2
 import numpy as np
@@ -13,7 +13,7 @@ def pred(args):
     CHARSET_SIZE = len(charset)
 
     # 定义模型
-    _,decoder_model,encoder_model = _model.model(conf,args)
+    _,decoder_model,encoder_model = _model.model(conf, args)
 
     # 分别加载模型
     encoder_model.load_model(args.model)
@@ -43,7 +43,7 @@ def pred(args):
     for i in range(conf.MAX_SEQUENCE):
 
         # 别看又padding啥的，其实就是一个字符，这样做是为了凑输入的维度定义
-        decoder_inputs = pad_sequences(decoder_index,maxlen=conf.MAX_SEQUENCE,padding="post",value=0)
+        decoder_inputs = pad_sequences(decoder_index, maxlen=conf.MAX_SEQUENCE, padding="post", value=0)
         decoder_inputs = to_categorical(decoder_inputs,num_classes=CHARSET_SIZE)
 
         # infer_decoder_model : Model(inputs=[decoder_inputs, encoder_out_states,decoder_init_state],
@@ -79,7 +79,7 @@ def pred(args):
         logger.info("预测字符为:%s",pred_char)
         result+= pred_char
 
-    if len(result)>=conf.MAX_SEQUENCE:
+    if len(result)>= conf.MAX_SEQUENCE:
         logger.debug("预测字符为：%s，达到最大预测长度", result)
     else:
         logger.debug("预测字符为：%s，解码最后为ETX", result)

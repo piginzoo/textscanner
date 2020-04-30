@@ -1,6 +1,6 @@
 from tensorflow.python.keras.layers import Layer
 from tensorflow.python.keras.layers import Convolution2D
-from tensorflow.nn import softmax
+from tensorflow.keras.activations import softmax
 
 
 class ClassBranchLayer(Layer):

@@ -8,10 +8,10 @@ CHAR_ETX = "\x03"
 CHAR_STX = "\x02"
 CHAR_NULL = " "
 
-MAX_SEQUENCE = 30        # 最大的识别汉字的长度
+MAX_SEQUENCE = 10        # 最大的识别汉字的长度
 MASK_VALUE = 0
 CHARSET = "data/charset.txt" # 3770的一级字库
-INPUT_IMAGE_HEIGHT = 32  # 图像归一化的高度
+INPUT_IMAGE_HEIGHT = 64  # 图像归一化的高度
 INPUT_IMAGE_WIDTH = 256  # 最大的图像宽度
 GRU_HIDDEN_SIZE = 256    # GRU隐含层神经元数量
 FEATURE_MAP_REDUCE = 8   # 相比原始图片，feature map缩小几倍（送入bi-gru的解码器之前的feature map），目前是8，因为用的resnet50，缩小8倍
@@ -26,6 +26,8 @@ DIR_CHECKPOINT="model/checkpoint"
 def init_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--name" ,default="attention_ocr",type=str,help="")
+    parser.add_argument("--train_label_dir",    default="data/test",    type=str, help="")
+    parser.add_argument("--validate_label_dir", default="data/test", type=str, help="")
     parser.add_argument("--train_label_file",    default="data/train.txt",    type=str, help="")
     parser.add_argument("--validate_label_file", default="data/validate.txt", type=str, help="")
     parser.add_argument("--epochs" ,default=1,type=int,help="")
