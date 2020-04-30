@@ -14,9 +14,9 @@ class LabelGenerater():
     - Localization map GT : Q
     - Character Segmentation : G
     """
-    shrink = 0.6 # shrink ratio for one character wrapped polygon
-    ζ = 0.5 # 归一化用的阈值
-    δ = 5 # 噢，方差设成了2
+    shrink = 0.6    # shrink ratio for one character wrapped polygon
+    ζ = 0.5         # threshold for normalization
+    δ = 5           # variation for Gaussian distribution
 
     def __init__(self,max_sequence,image_shape,charset):
         self.max_sequence = max_sequence
@@ -26,14 +26,14 @@ class LabelGenerater():
     def _adjust_by_size(self,boxes,original_shape):
         assert len(boxes.shape)==2 or len(boxes.shape)==3
 
-        ratio_x = original_shape[1] / self.image_shape[1] # 高度比
-        ratio_y = original_shape[0] / self.image_shape[0] # 宽度比
+        ratio_x = original_shape[1] / self.image_shape[1]
+        ratio_y = original_shape[0] / self.image_shape[0]
 
         if len(boxes.shape)==3:
-            boxes[:, :, 0] = (boxes[:, :, 0] / ratio_x).clip(0, self.image_shape[1]) # 估计是boxes是所有的框:[b,N,2]
+            boxes[:, :, 0] = (boxes[:, :, 0] / ratio_x).clip(0, self.image_shape[1])
             boxes[:, :, 1] = (boxes[:, :, 1] / ratio_y).clip(0, self.image_shape[0])
         else:
-            boxes[   :, 0] = (boxes[   :, 0] / ratio_x).clip(0, self.image_shape[1])  # 估计是boxes是所有的框:[b,N,2]
+            boxes[   :, 0] = (boxes[   :, 0] / ratio_x).clip(0, self.image_shape[1])
             boxes[   :, 1] = (boxes[   :, 1] / ratio_y).clip(0, self.image_shape[0])
 
         boxes = (boxes + .5).astype(np.int32)
@@ -42,11 +42,11 @@ class LabelGenerater():
     # data is ImageLabel{image,[Label]}
     def process(self, image_labels):
 
-        # 根据规定的图像大小，调整label的坐标
+        # adjust the coordination
         shape = image_labels.image.shape[:2] # h,w
         boxes = self._adjust_by_size(image_labels.bboxes,shape)
 
-        # 从一个字的框的多边形里找出x，y的最大小值，此举是为了确定多边形的中心点
+        # find the one bbox boundary
         xmins = boxes[:, :, 0].min(axis=1)
         xmaxs = np.maximum(boxes[:, :, 0].max(axis=1), xmins + 1) # 找到x最大值
         ymins = boxes[:, :, 1].min(axis=1)
@@ -56,23 +56,26 @@ class LabelGenerater():
         localization_map = np.zeros(self.image_shape, dtype=np.float32)
         order_maps = np.zeros((self.max_sequence, *self.image_shape), dtype=np.float32)
 
-        # 处理每个字符
+        # process each character
         for i in range(xmins.shape[0]):
+
             # Y_k is the normalized_gaussian map, comply with the name in the paper
             Y_k = self.gaussian_normalize(self.image_shape,xmins[i], xmaxs[i], ymins[i], ymaxs[i])
             self.render_order_map(order_maps[i],Y_k,threshold=self.ζ)
             self.render_localization_map(localization_map,Y_k)
-        print(order_maps.sum())
+
         return character_segment,order_maps,localization_map
 
-    # 围绕中心点做一个高斯分布，但是由于每个点的概率值过小，所以要做一个归一化,使得每个点的值归一化到[0,1]之间，
+    # 围绕中心点做一个高斯分布，但是由于每个点的概率值过小，所以要做一个归一化,使得每个点的值归一化到[0,1]之间
+    # Make a gaussian distribution with the center, and do normalization
     def gaussian_normalize(self, shape, xmin, xmax, ymin, ymax):
         out = np.zeros(shape)
         h, w = shape[:2]
         # find the center of polygon
         y = (ymax+ymin+1)//2
         x = (xmax+xmin+1)//2
-        if not (w > x and h > y): return
+        if not (w > x and h > y): return None
+
         # prepare the gaussian distribution,refer to paper <<Label Generation>>
         out[y, x] = 1.
         out = fi.gaussian_filter(out, (self.δ, self.δ),output=out, mode='mirror')

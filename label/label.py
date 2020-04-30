@@ -1,6 +1,5 @@
 import numpy as np
 import json
-from ast import literal_eval
 class ImageLabel:
 
     # labelme json format reference: https://github.com/wkentaro/labelme/blob/master/examples/tutorial/apc2016_obj3.json
