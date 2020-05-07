@@ -20,8 +20,8 @@ class SequenceData(Sequence):
         self.charsets = charsets
         self.initialize(args)
         self.start_time = time.time()
-        image_shape = (conf.INPUT_IMAGE_HEIGHT,conf.INPUT_IMAGE_WIDTH)
-        self.label_generator = LabelGenerater(conf.MAX_SEQUENCE,image_shape,charsets)
+        target_image_shape = (conf.INPUT_IMAGE_HEIGHT,conf.INPUT_IMAGE_WIDTH)
+        self.label_generator = LabelGenerater(conf.MAX_SEQUENCE,target_image_shape,charsets)
 
     def __len__(self):
         return int(math.ceil(len(self.data_list) / self.batch_size))
@@ -46,7 +46,12 @@ class SequenceData(Sequence):
             batch_cs.append(character_segment)
             batch_om.append(order_maps)
             batch_lm.append(localization_map)
-        return images, [batch_cs,batch_om,batch_lm]
+
+            # TODO 需要和ImageLabel的内容统一考虑
+            image = cv2.resize(image, (self.conf.INPUT_IMAGE_WIDTH, self.conf.INPUT_IMAGE_WIDTH))
+            image = image/ 255.0 # TODO 要变成 float，否则报错
+            images.append(image)
+        return np.array(images), [np.array(batch_cs),np.array(batch_om),np.array(batch_lm)]
 
     def __getitem__(self, idx):
         logger.debug("[%s] load index:%r",self.name,idx)

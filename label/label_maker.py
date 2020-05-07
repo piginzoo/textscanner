@@ -18,23 +18,23 @@ class LabelGenerater():
     ζ = 0.5         # threshold for normalization
     δ = 5           # variation for Gaussian distribution
 
-    def __init__(self,max_sequence,image_shape,charset):
+    def __init__(self,max_sequence,target_image_shape,charset):
         self.max_sequence = max_sequence
-        self.image_shape = image_shape # default:[64,256]
+        self.target_image_shape = target_image_shape # default:[64,256]
         self.charset = charset
 
     def _adjust_by_size(self,boxes,original_shape):
         assert len(boxes.shape)==2 or len(boxes.shape)==3
 
-        ratio_x = original_shape[1] / self.image_shape[1]
-        ratio_y = original_shape[0] / self.image_shape[0]
+        ratio_x = original_shape[1] / self.target_image_shape[1]
+        ratio_y = original_shape[0] / self.target_image_shape[0]
 
         if len(boxes.shape)==3:
-            boxes[:, :, 0] = (boxes[:, :, 0] / ratio_x).clip(0, self.image_shape[1])
-            boxes[:, :, 1] = (boxes[:, :, 1] / ratio_y).clip(0, self.image_shape[0])
+            boxes[:, :, 0] = (boxes[:, :, 0] / ratio_x).clip(0, self.target_image_shape[1])
+            boxes[:, :, 1] = (boxes[:, :, 1] / ratio_y).clip(0, self.target_image_shape[0])
         else:
-            boxes[   :, 0] = (boxes[   :, 0] / ratio_x).clip(0, self.image_shape[1])
-            boxes[   :, 1] = (boxes[   :, 1] / ratio_y).clip(0, self.image_shape[0])
+            boxes[   :, 0] = (boxes[   :, 0] / ratio_x).clip(0, self.target_image_shape[1])
+            boxes[   :, 1] = (boxes[   :, 1] / ratio_y).clip(0, self.target_image_shape[0])
 
         boxes = (boxes + .5).astype(np.int32)
         return boxes
@@ -53,14 +53,14 @@ class LabelGenerater():
         ymaxs = np.maximum(boxes[:, :, 1].max(axis=1), ymins + 1)
 
         character_segment = self.render_character_segemention(image_labels)
-        localization_map = np.zeros(self.image_shape, dtype=np.float32)
-        order_maps = np.zeros((self.max_sequence, *self.image_shape), dtype=np.float32)
+        localization_map = np.zeros(self.target_image_shape, dtype=np.float32)
+        order_maps = np.zeros((self.max_sequence, *self.target_image_shape), dtype=np.float32)
 
         # process each character
         for i in range(xmins.shape[0]):
 
             # Y_k is the normalized_gaussian map, comply with the name in the paper
-            Y_k = self.gaussian_normalize(self.image_shape,xmins[i], xmaxs[i], ymins[i], ymaxs[i])
+            Y_k = self.gaussian_normalize(self.target_image_shape,xmins[i], xmaxs[i], ymins[i], ymaxs[i])
             self.render_order_map(order_maps[i],Y_k,threshold=self.ζ)
             self.render_localization_map(localization_map,Y_k)
 
@@ -90,21 +90,22 @@ class LabelGenerater():
     def render_character_segemention(self, image_labels):
         image_original_shape = image_labels.image.shape[:2]  # h,w
 
-        character_segment = np.zeros(self.image_shape, dtype=np.int32)
+        character_segment = np.zeros(self.target_image_shape, dtype=np.int32)
         for one_word_label in image_labels.labels:
             poly = self._adjust_by_size(one_word_label.bbox,image_original_shape)
             label = one_word_label.label
             shrinked_poly = image_utils.shrink_poly(poly,self.shrink)
             char_id = label_utils.str2id(label,self.charset)
 
-            word_fill = np.zeros(self.image_shape,np.uint32)
+            word_fill = np.zeros(self.target_image_shape,np.uint32)
             word_fill.fill(char_id)
 
-            mask = np.zeros(self.image_shape, np.uint8)
+            mask = np.zeros(self.target_image_shape, np.uint8)
             cv2.fillPoly(mask, [shrinked_poly], 1)
             mask = np.array(mask)
 
             character_segment+= mask * word_fill
+            character_segment.astype(np.int32)
 
         return character_segment
 

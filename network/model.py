@@ -1,4 +1,5 @@
-from tensorflow.python.keras.models import Model
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input
 from tensorflow.keras.losses import Loss
 from tensorflow.keras.losses import CategoricalCrossentropy
 from network.layers.fcn_layer import FCNLayer
@@ -6,6 +7,7 @@ from tensorflow.keras import backend as K
 from network.layers.class_branch_layer import ClassBranchLayer
 from network.layers.geometry_branch_layer import GeometryBranch
 from network.layers.word_formation_layer import WordFormation
+
 import logging
 from tensorflow.python.keras.applications.resnet import ResNet50
 
@@ -18,19 +20,20 @@ class TextScannerModel(Model):
     """
     def __init__(self,conf,charset):
         super(TextScannerModel, self).__init__()
+        self.input_image = Input(shape=(conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH, 3),name='input_image')
         self.class_branch = ClassBranchLayer(len(charset))
-        self.geometry_branch = GeometryBranch(conf.MAX_SEQUENCE)
+        self.geometry_branch = GeometryBranch(conf)
         self.word_formation = WordFormation()        # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
-        self.resnet50_model = ResNet50(include_top=False,weights='imagenet',input_shape=(32,256,3))
+        self.resnet50_model = ResNet50(include_top=False,weights='imagenet')
         self.fcn = FCNLayer(self.resnet50_model)
-
 
     def call(self, inputs, training=None):
         x = self.fcn(inputs)
         charactor_segmantation = self.class_branch(x)
-        order_map = self.geometry_branch(x)
+        order_map,localization_map = self.geometry_branch(x)
         result = self.word_formation(charactor_segmantation,order_map)
-        return result
+        # data:Y:[batch_cs,batch_om,batch_lm]
+        return charactor_segmantation, order_map, localization_map
 
 
 # 自定义损失函数

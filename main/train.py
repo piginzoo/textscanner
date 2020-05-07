@@ -7,6 +7,8 @@ from tensorflow.keras.optimizers import Adam
 import conf
 import os
 import logging
+import tensorflow as tf
+import tensorflow_hub as hub
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +18,13 @@ def train(args):
     charset = label_utils.get_charset(conf.CHARSET)
     conf.CHARSET_SIZE = len(charset)
 
+    # tf.enable_eager_execution()
+    # url = "https://tfhub.dev/tensorflow/resnet_50/feature_vector/1"
+    # resnet50_layer = hub.KerasLayer(url, input_shape=[], dtype=tf.string, trainable=True)
+
     model = TextScannerModel(conf,charset)
     model.compile(Adam(),loss=TextScannerLoss())
-    model.build((None,64,256,3))
-    model.summary()
+    # model.summary()
 
     train_sequence = SequenceData(name="Train",
                                   label_dir=args.train_label_dir,

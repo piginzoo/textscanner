@@ -33,7 +33,7 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     # 验证：使用sequence是不需要要validation_steps参数的，他会自己算，len(data)/batch
     #      如果你规定，那就得比它小才可以，另外还要验证，是不是把每个批次的结果做平均，还是算整体的
     python -m main.train \
-    --name=attention_ocr \
+    --name=textscanner \
     --epochs=5 \
     --debug_step=1 \
     --steps_per_epoch=3 \
@@ -55,7 +55,7 @@ fi
 
 if [ "$1" = "stop" ]; then
     echo "停止训练"
-    ps aux|grep python|grep name=attention_ocr|awk '{print $2}'|xargs kill -9
+    ps aux|grep python|grep name=textscanner|awk '{print $2}'|xargs kill -9
     exit
 fi
 
@@ -64,7 +64,7 @@ echo "生产模式"
 echo "使用 #$CUDA_VISIBLE_DEVICES GPU"
 
 nohup python -m main.train \
-    --name=attention_ocr \
+    --name=textscanner \
     --steps_per_epoch=1000 \
     --epochs=5000000 \
     --debug_step=1000 \

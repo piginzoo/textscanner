@@ -14,8 +14,8 @@ class ClassBranchLayer(Layer):
         self.charset_size = charset_size
 
     def build(self, input_shape):
-        self.conv1 = Convolution2D((3,3),512)
-        self.conv2 = Convolution2D((1,1),self.charset_size)
+        self.conv1 = Convolution2D(512,(3,3),512)
+        self.conv2 = Convolution2D(512,(1,1),self.charset_size)
 
     def call(self, inputs, training=None):
         x = self.conv1(inputs)
