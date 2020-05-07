@@ -1,13 +1,14 @@
-from network.model import TextScannerModel
+from network.model import TextScannerModel,TextScannerLoss
 from utils.sequence import SequenceData
 from utils import util, logger as log,label_utils
-from tensorflow.python.keras.callbacks import TensorBoard, ModelCheckpoint,EarlyStopping
-from tensorflow.python.keras.models import load_model
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint,EarlyStopping
+from tensorflow.keras.models import load_model
+from tensorflow.keras.optimizers import Adam
 import conf
 import os
 import logging
 
-logger = logging.getLogger("Train")
+logger = logging.getLogger(__name__)
 
 
 def train(args):
@@ -16,18 +17,21 @@ def train(args):
     conf.CHARSET_SIZE = len(charset)
 
     model = TextScannerModel(conf,charset)
+    model.compile(Adam(),loss=TextScannerLoss())
+    model.build((None,64,256,3))
+    model.summary()
 
     train_sequence = SequenceData(name="Train",
                                   label_dir=args.train_label_dir,
                                   label_file=args.train_label_file,
-                                  charset_file=conf.CHARSET,
+                                  charsets=charset,
                                   conf=conf,
                                   args=args,
                                   batch_size=args.batch)
     valid_sequence = SequenceData(name="Validate",
                                   label_dir=args.validate_label_dir,
                                   label_file=args.validate_label_file,
-                                  charset_file=conf.CHARSET,
+                                  charsets=charset,
                                   conf=conf,
                                   args=args,
                                   batch_size=args.validation_batch)

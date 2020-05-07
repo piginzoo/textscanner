@@ -7,7 +7,7 @@ from network.layers.class_branch_layer import ClassBranchLayer
 from network.layers.geometry_branch_layer import GeometryBranch
 from network.layers.word_formation_layer import WordFormation
 import logging
-import conf
+from tensorflow.python.keras.applications.resnet import ResNet50
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +18,12 @@ class TextScannerModel(Model):
     """
     def __init__(self,conf,charset):
         super(TextScannerModel, self).__init__()
-        self.fcn = FCNLayer(28 * 28, 256)
         self.class_branch = ClassBranchLayer(len(charset))
         self.geometry_branch = GeometryBranch(conf.MAX_SEQUENCE)
-        self.word_formation = WordFormation()
+        self.word_formation = WordFormation()        # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
+        self.resnet50_model = ResNet50(include_top=False,weights='imagenet',input_shape=(32,256,3))
+        self.fcn = FCNLayer(self.resnet50_model)
+
 
     def call(self, inputs, training=None):
         x = self.fcn(inputs)
@@ -38,6 +40,9 @@ class TextScannerLoss(Loss):
     lambda_o = 10
     lambda_m = 1# 0:pretrain phase, otherwise 1
     crossentropy = CategoricalCrossentropy()
+
+    def __init__(self):
+        super(Loss, self).__init__()
 
     def smoothL1(self, y_true, y_pred):
         x = K.abs(y_true - y_pred)

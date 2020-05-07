@@ -92,11 +92,11 @@ def load_labels(label_dir, process_num=None):
     image_labels = []
     for f in files:
         name,ext = os.path.splitext(f)
-        if not ext.upper()!=".JSON": continue
+        if ext.upper()!=".JSON": continue
         image_path = os.path.join(label_dir,name+".jpg")
         if not os.path.exists(image_path): continue
         json_path = os.path.join(label_dir, f)
-        image_labels.apend([image_path,json_path])
+        image_labels.append([image_path,json_path])
 
     return image_labels
 

@@ -8,7 +8,7 @@ def show_image(img):
     # if img:plt.imshow(img)
     pass
 
-# 图像缩放，高度都是32,这次的宽度，会和这个批次最宽的图像对齐填充padding
+# 图像缩放，高度都是64,这次的宽度，会和这个批次最宽的图像对齐填充padding
 def read_and_resize_image(image_names: list,conf):
 
     padded_images = []
@@ -20,7 +20,7 @@ def read_and_resize_image(image_names: list,conf):
             continue
         # logger.debug("读取文件[%s]:%r",image_name,image.shape)
         h,w,_ = image.shape
-        ratio = conf.INPUT_IMAGE_HEIGHT/h # INPUT_IMAGE_HEIGHT 默认为32
+        ratio = conf.INPUT_IMAGE_HEIGHT/h # INPUT_IMAGE_HEIGHT
         image = cv2.resize(image, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_AREA)
         show_image(image)
         # resize后，看实际宽度和要求的宽度，默认是256
@@ -46,7 +46,7 @@ def perimeter(polys):
     nums = polys.shape[0]
     for i in range(nums):
         p += abs(np.linalg.norm(polys[i % nums] - polys[(i + 1) % nums]))
-    logger.debug('perimeter:{}'.format(p))
+    # logger.debug('perimeter:{}'.format(p))
     return p
 
 # 参考：https://blog.csdn.net/m_buddy/article/details/105614620

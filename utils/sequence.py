@@ -20,7 +20,8 @@ class SequenceData(Sequence):
         self.charsets = charsets
         self.initialize(args)
         self.start_time = time.time()
-        self.label_generator = LabelGenerater()
+        image_shape = (conf.INPUT_IMAGE_HEIGHT,conf.INPUT_IMAGE_WIDTH)
+        self.label_generator = LabelGenerater(conf.MAX_SEQUENCE,image_shape,charsets)
 
     def __len__(self):
         return int(math.ceil(len(self.data_list) / self.batch_size))
@@ -33,7 +34,8 @@ class SequenceData(Sequence):
         batch_lm = []
         for image_path,json_path in batch_data_list:
             image = cv2.imread(image_path)
-            with open(json_path) as f:
+
+            with open(json_path,encoding="utf-8") as f:
                 json = f.read()
             il = ImageLabel(image,json)
 
@@ -61,5 +63,5 @@ class SequenceData(Sequence):
     def initialize(self,args):
         logger.info("[%s]begin to load image/labels",self.name)
         start_time = time.time()
-        self.data_list = label_utils.load_labels(self.label_file,args.preprocess_num)
+        self.data_list = label_utils.load_labels(self.label_dir,args.preprocess_num)
         logger.info("[%s]loaded [%d] labels,elapsed time [%d]s", self.name, len(self.data_list),(time.time() - start_time))
