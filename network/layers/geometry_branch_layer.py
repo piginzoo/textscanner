@@ -18,42 +18,42 @@ class GeometryBranch(Layer):
 
     def build(self, input_shape):
         # order segment generation network
-        self.conv_os1 = Convolution2D(filters=512,kernel_size=(3,3),strides=2) # 1/2
-        self.conv_os2 = Convolution2D(filters=512,kernel_size=(3, 3), strides=2)  # 1/4
-        self.conv_os3 = Convolution2D(filters=512,kernel_size=(3, 3), strides=2)  # 1/8
-        self.gru_os = GRU(units=64)
-        self.dconv_os1 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1/4
-        self.dconv_os2 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1/2
-        self.dconv_os3 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1
+        self.conv_order_seg1 = Convolution2D(filters=512,kernel_size=(3,3),strides=2) # 1/2
+        self.conv_order_seg2 = Convolution2D(filters=512,kernel_size=(3, 3), strides=2)  # 1/4
+        self.conv_order_seg3 = Convolution2D(filters=512,kernel_size=(3, 3), strides=2)  # 1/8
+        self.gru_order_seg = GRU(units=64,return_sequences = True)
+        self.dconv_order_seg1 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1/4
+        self.dconv_order_seg2 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1/2
+        self.dconv_order_seg3 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1
 
         # localization map generation network
-        self.conv_lm1 = Convolution2D(512,(3,3),64)
-        self.conv_lm2 = Convolution2D(512,(1,1),self.sequence_length)
+        self.conv_loc_map1 = Convolution2D(512,(3,3),64)
+        self.conv_loc_map2 = Convolution2D(512,(1,1),self.sequence_length)
 
     def call(self, inputs, training=None):
-        # generate Order Segmentation
-        s1 = self.conv_os1(inputs)
-        s2 = self.conv_os2(s1)
-        s3 = self.conv_os3(s2)
+        # 1.generate Order Segmentation
+        # 1.1 conv
+        s1 = self.conv_order_seg1(inputs)
+        s2 = self.conv_order_seg2(s1)
+        s3 = self.conv_order_seg3(s2)
 
-        # [B,H,W,C] => [B,W,H*C]
+        # 1.2 [B,H,W,C] => [B,W,H*C]
         s = tf.transpose(s3,(0,2,1,3))
-        shape = s.get_shape().as_list()
-        print("==============================")
-        print(shape)
-        s = tf.reshape(-1,self.image_area)
+        s = tf.reshape(tensor=s,shape=(tf.shape(s)[0],tf.shape(s)[1],tf.shape(s)[2]*tf.shape(s)[3]))
 
-        # pass a GRU
-        s = self.gru_os(s)
+        # 1.3 pass a GRU
+        s = self.gru_order_seg(s)
 
-        s = self.dconv_os3(s)
-        s = self.dconv_os2(s+s2)
-        s = self.dconv_os1(s+s1)
+        # 1.4 deconv
+        s = self.dconv_order_seg3(s)
+        s = self.dconv_order_seg2(s+s2)
+        s = self.dconv_order_seg1(s+s1)
 
-        # generate Localization Map
-        q = self.conv_lm1(inputs)
-        q = self.conv_lm2(q)
+        # 2.generate Localization Map
+        q = self.conv_loc_map1(inputs)
+        q = self.conv_loc_map2(q)
 
-        # multiplq S[N,H,W] * Q[1,H,W] =>  [N,H,W]
+        # multiply S[N,H,W] * Q[1,H,W] =>  [N,H,W]
         h = s*q
+
         return h,q

@@ -16,9 +16,6 @@ class FCNLayer(Layer):
 
     # 谁小，按照谁的大小切
     def crop(self, o1, o2):
-        print("=================")
-        print(o1.shape)
-        print(o2.shape)
         output_height1 = o1.shape[0]
         output_width1 = o1.shape[1]
         output_height2 = o2.shape[0]
@@ -63,8 +60,7 @@ class FCNLayer(Layer):
         # pool4做1x1卷积后 + 反卷积后的pool5，恢复到原图1/16
         o2 = pool4
         o2 = (Conv2D(filters=1024,kernel_size=(1, 1), kernel_initializer='he_normal',))(o2)
-        print("o==================================>",o)
-        print("o2==================================>", o2)
+
         # o, o2 = self.crop(o, o2) # 剪裁到原图大小
         o = Add()([o, o2])
 

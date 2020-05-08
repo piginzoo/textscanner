@@ -29,7 +29,7 @@ class TextScannerModel(Model):
 
     def call(self, inputs, training=None):
         x = self.fcn(inputs)
-        charactor_segmantation = self.class_branch(x)
+        x = charactor_segmantation = self.class_branch(x)
         order_map,localization_map = self.geometry_branch(x)
         result = self.word_formation(charactor_segmantation,order_map)
         # data:Y:[batch_cs,batch_om,batch_lm]
