@@ -42,6 +42,7 @@ class GeometryBranch(Layer):
         s = tf.reshape(tensor=s,shape=(tf.shape(s)[0],tf.shape(s)[1],tf.shape(s)[2]*tf.shape(s)[3]))
 
         # 1.3 pass a GRU
+        print(s.shape)
         s = self.gru_order_seg(s)
 
         # 1.4 deconv
