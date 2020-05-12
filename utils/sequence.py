@@ -39,8 +39,7 @@ class SequenceData(Sequence):
                 json = f.read()
             il = ImageLabel(image,json)
 
-            character_segment, order_maps, localization_map = \
-                self.label_generator.process(il)
+            character_segment, order_maps, localization_map = self.label_generator.process(il)
             character_segment = to_categorical(character_segment, num_classes=len(self.charsets)+1)
 
             batch_cs.append(character_segment)
@@ -51,7 +50,12 @@ class SequenceData(Sequence):
             image = cv2.resize(image, (self.conf.INPUT_IMAGE_WIDTH, self.conf.INPUT_IMAGE_WIDTH))
             image = image/ 255.0 # TODO 要变成 float，否则报错
             images.append(image)
-        return np.array(images), [np.array(batch_cs),np.array(batch_om),np.array(batch_lm)]
+        return np.array(images),[np.array(batch_cs),np.array(batch_om),np.array(batch_lm)]
+        # {
+        #     'charactor_segmantation':np.array(batch_cs),
+        #     'order_map':np.array(batch_om),
+        #     'localization_map':np.array(batch_lm)
+        # }
 
     def __getitem__(self, idx):
         logger.debug("[%s] load index:%r",self.name,idx)

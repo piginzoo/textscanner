@@ -15,13 +15,14 @@ class GeometryBranch(Layer):
         super(GeometryBranch, self).__init__()
         self.image_area = conf.INPUT_IMAGE_HEIGHT * conf.INPUT_IMAGE_WIDTH
         self.sequence_length = conf.MAX_SEQUENCE
+        self.conf = conf
 
     def build(self, input_shape):
         # order segment generation network
         self.conv_order_seg1 = Convolution2D(filters=512,kernel_size=(3,3),strides=2) # 1/2
         self.conv_order_seg2 = Convolution2D(filters=512,kernel_size=(3, 3), strides=2)  # 1/4
         self.conv_order_seg3 = Convolution2D(filters=512,kernel_size=(3, 3), strides=2)  # 1/8
-        self.gru_order_seg = GRU(units=64,return_sequences = True)
+        self.gru_order_seg = GRU(units=512,return_sequences = True)
         self.dconv_order_seg1 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1/4
         self.dconv_order_seg2 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1/2
         self.dconv_order_seg3 = Conv2DTranspose(filters=512,kernel_size=(3, 3), strides=2)  # 1
@@ -39,11 +40,19 @@ class GeometryBranch(Layer):
 
         # 1.2 [B,H,W,C] => [B,W,H*C]
         s = tf.transpose(s3,(0,2,1,3))
-        s = tf.reshape(tensor=s,shape=(tf.shape(s)[0],tf.shape(s)[1],tf.shape(s)[2]*tf.shape(s)[3]))
+        # s = tf.reshape(tensor=s,shape=(tf.shape(s)[0],tf.shape(s)[1],tf.shape(s)[2]*tf.shape(s)[3]))
+        s = tf.reshape(tensor=s, shape=(-1,
+                                        self.conf.INPUT_IMAGE_WIDTH,
+                                        512*self.conf.INPUT_IMAGE_HEIGHT))
 
         # 1.3 pass a GRU
-        print(s.shape)
         s = self.gru_order_seg(s)
+
+        s = tf.reshape(tensor=s, shape=(-1,
+                                        self.conf.INPUT_IMAGE_WIDTH,
+                                        self.conf.INPUT_IMAGE_HEIGHT,
+                                        512))
+        s = tf.transpose(s, (0, 2, 1, 3))
 
         # 1.4 deconv
         s = self.dconv_order_seg3(s)

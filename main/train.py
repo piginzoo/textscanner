@@ -1,4 +1,4 @@
-from network.model import TextScannerModel,TextScannerLoss
+from network.model import TextScannerModel,localization_map_loss
 from utils.sequence import SequenceData
 from utils import util, logger as log,label_utils
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint,EarlyStopping
@@ -7,24 +7,18 @@ from tensorflow.keras.optimizers import Adam
 import conf
 import os
 import logging
-import tensorflow as tf
-import tensorflow_hub as hub
 
 logger = logging.getLogger(__name__)
 
 
 def train(args):
-
     charset = label_utils.get_charset(conf.CHARSET)
     conf.CHARSET_SIZE = len(charset)
 
-    # tf.enable_eager_execution()
-    # url = "https://tfhub.dev/tensorflow/resnet_50/feature_vector/1"
-    # resnet50_layer = hub.KerasLayer(url, input_shape=[], dtype=tf.string, trainable=True)
-
     model = TextScannerModel(conf,charset)
-    model.compile(Adam(),loss=TextScannerLoss())
-    # model.summary()
+    losses =['categorical_crossentropy','categorical_crossentropy',localization_map_loss()]
+    loss_weights = [1,10,10]
+    model.compile(Adam(),loss=losses,loss_weights=loss_weights,metrics=['accuracy'])
 
     train_sequence = SequenceData(name="Train",
                                   label_dir=args.train_label_dir,
@@ -43,7 +37,7 @@ def train(args):
 
     timestamp = util.timestamp_s()
     tb_log_name = os.path.join(conf.DIR_TBOARD, timestamp)
-    checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}-acc{words_accuracy:.4f}-val{val_words_accuracy:.4f}.hdf5"
+    checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}-acc{acc:.4f}-val{val_acc:.4f}.hdf5"
 
     # 如果checkpoint文件存在，就加载之
     if args.retrain:
@@ -60,7 +54,7 @@ def train(args):
     logger.info("Begin train开始训练：")
 
     tboard = TensorBoard(log_dir=tb_log_name,histogram_freq=1,batch_size=2,write_grads=True)
-    early_stop = EarlyStopping(monitor='words_accuracy', patience=args.early_stop, verbose=1, mode='max')
+    early_stop = EarlyStopping(monitor='val_acc', patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
 
     model.fit_generator(
