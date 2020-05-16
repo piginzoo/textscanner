@@ -1,79 +1,96 @@
-from tensorflow.keras.models import *
 from tensorflow.keras.layers import *
+from tensorflow.keras.models import Model
+from utils.util import call_debug as _call
+
 
 class FCNLayer(Layer):
     """
-    # Resnet层的参考图：http://www.piginzoo.com/machine-learning/2019/08/28/east &  https://i.stack.imgur.com/tkUYS.png
-    # FC实现参考：https://github.com/divamgupta/image-segmentation-keras/blob/master/keras_segmentation/models/fcn.py
+    # Resnet：http://www.piginzoo.com/machine-learning/2019/08/28/east &  https://i.stack.imgur.com/tkUYS.png
+    # FCN：   https://github.com/divamgupta/image-segmentation-keras/blob/master/keras_segmentation/models/fcn.py
     # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
+    This implements FCN-8s
     """
-
     def __init__(self,resnet50_model):
         super(FCNLayer, self).__init__()
         resnet50_model.layers.pop()
+        resnet50_model.summary()
         self.resnet50_model = resnet50_model
 
 
-    # 谁小，按照谁的大小切
+    def build(self,input_image,FILTER_NUM=512):
+
+        ############################
+        # encoder part
+        ############################
+
+        layer_names = [
+            "conv3_block4_out",  # 1/8
+            "conv4_block6_out",  # 1/16
+            "conv5_block3_out",  # 1/32
+        ]
+        layers = [self.resnet50_model .get_layer(name).output for name in layer_names]
+        self.FCN_left = Model(inputs= self.resnet50_model .input, outputs=layers)
+
+        ############################
+        # decoder part
+        ############################
+
+        # pool5(1/32) ==> 1/16
+        self.pool5_conv1 = Conv2D(FILTER_NUM, (2, 2), activation='relu',padding='same',name="fcn_pool5_conv1") # 2x2 is because the least height is 2 pixes after Resnet
+        self.pool5_drop1 = Dropout(0.25,name="fcn_pool5_drop1")
+        self.pool5_conv2 = Conv2D(FILTER_NUM, (1, 1), activation='relu',padding='same',name="fcn_pool5_conv2")
+        self.pool5_drop2 = Dropout(0.25,name="fcn_pool5_drop2")
+        self.pool5_conv3 = Conv2D(FILTER_NUM,  (1, 1), kernel_initializer='he_normal',name="fcn_pool5_conv3")
+        self.pool5_dconv1 = Conv2DTranspose(filters=FILTER_NUM, kernel_size=(3, 3),  strides=(2, 2), use_bias=False,name="fcn_pool5_dconv1") # stride=2后，反卷积图从2x8=>5x17（像素间padding0），采用3x3核做上卷积
+
+        # pool4(1/16)+dconv ==> 1/8
+        self.pool4_conv1 = Conv2D(filters=FILTER_NUM,kernel_size=(1, 1), kernel_initializer='he_normal',name="fcn_pool4_conv1") # pool4做1x1卷积后 + 反卷积后的pool5，恢复到原图1/16
+        self.pool4_add1 = Add(name="fcn_pool4_add1")
+        self.pool4_dconv1 = Conv2DTranspose(filters=FILTER_NUM, kernel_size=(3, 3),  strides=(2, 2), use_bias=False,name="fcn_pool4_dconv1") # （pool4 + 上采样后的pool5）的结果 再次做反卷积，尺寸恢复到原图的1/8
+
+        # pool3(1/8)+dconv ==> original size
+        self.pool3_conv1 = Conv2D(filters=FILTER_NUM, kernel_size=(1, 1), kernel_initializer='he_normal',name="fcn_pool3_conv1") # pool3做1x1卷积后与上面的结果融合
+        self.pool3_add1 = Add(name="fcn_pool3_add1")
+        self.pool3_dconv1 = Conv2DTranspose(filters=FILTER_NUM, kernel_size=(3, 3),  strides=(8, 8), use_bias=False,name="fcn_pool3_dconv1")# 最后一个反卷积，将尺寸从1/8，直接恢复到原图大小（stride=8)
+
+    def call(self,input_image, training=True):
+
+        pool3,pool4,pool5 = _call(self.FCN_left,input_image)
+        o = _call(self.pool5_conv1,pool5)
+        o = _call(self.pool5_drop1,o)
+        o = _call(self.pool5_conv2,o)
+        o = _call(self.pool5_drop2,o)
+        o = _call(self.pool5_conv3,o)
+        o5 = _call(self.pool5_dconv1,o)
+
+        o4 = _call(self.pool4_conv1, pool4)
+        o5, o4 = self.crop(o5,o4)
+        o45 = _call(self.pool4_add1,[o5,o4])
+        o45 = _call(self.pool4_dconv1,o45)
+
+        o3 = _call(self.pool3_conv1,pool3)
+        o45,o3 = self.crop(o45,o3)
+        o = _call(self.pool3_add1,[o45,o3])
+        o = _call(self.pool3_dconv1,o)
+
+        return o
+
+    # cut to smaller
     def crop(self, o1, o2):
-        output_height1 = o1.shape[0]
-        output_width1 = o1.shape[1]
-        output_height2 = o2.shape[0]
-        output_width2 = o2.shape[1]
+        o1_height, o1_width = o1.shape[1], o1.shape[2]
+        o2_height, o2_width = o2.shape[1], o2.shape[2]
 
-        cx = abs(output_width1 - output_width2)
-        cy = abs(output_height2 - output_height1)
+        cx = abs(o1_width - o2_width)
+        cy = abs(o1_height - o2_height)
 
-        if output_width1 > output_width2:
-            # cropping=((top_crop, bottom_crop), (left_crop, right_crop))`
+        if o1_width > o2_width:
             o1 = Cropping2D(cropping=((0, 0),  (0, cx)))(o1)
         else:
             o2 = Cropping2D(cropping=((0, 0),  (0, cx)))(o2)
 
-        if output_height1 > output_height2:
+        if o1_height > o2_height:
             o1 = Cropping2D(cropping=((0, cy),  (0, 0)))(o1)
         else:
             o2 = Cropping2D(cropping=((0, cy),  (0, 0)))(o2)
 
         return o1, o2
-
-    # 实现了fcn_8,也就是结合了pool3,pool4,pool5的感受尺度最多的方式。
-    # 由于经过resnet50后的尺寸是2x8，所以，kernel设计成2x2，不再是大家普通用的7x7
-    def call(self,input_image,n_classes=1024):
-
-        # 获取Resnet50的pool3-pool5,pool3-5的命名是参照FCN中的定义，"convx_blockx_out"是使用HDFView查看hdf5模型后找到的
-        # pool5 = self.resnet50_model(input_image)
-        pool3 = self.resnet50_model.get_layer("conv3_block4_out").output # 1/8，[28,28.512]
-        pool4 = self.resnet50_model.get_layer("conv4_block6_out").output # 1/16 [14,14,1024]
-        pool5 = self.resnet50_model.get_layer("conv5_block3_out").output # 1/32 [7,7,2048]
-
-        # pool5经过2x2,1x1,1x1的卷积后，做反卷积，恢复到原图1/16
-        o = pool5
-        o = (Conv2D(4096, (2, 2), activation='relu',padding='same'))(o)
-        o = Dropout(0.5)(o)
-        o = (Conv2D(4096, (1, 1), activation='relu',padding='same'))(o)
-        o = Dropout(0.5)(o)
-        o = (Conv2D(512,  (1, 1), kernel_initializer='he_normal',))(o)
-        # stride=2后，反卷积图从2x8=>5x17（像素间padding0），采用3x3核做上卷积
-        o = Conv2DTranspose(filters=n_classes, kernel_size=(3, 3),  strides=(2, 2), use_bias=False)(o)
-
-        # pool4做1x1卷积后 + 反卷积后的pool5，恢复到原图1/16
-        o2 = pool4
-        o2 = (Conv2D(filters=1024,kernel_size=(1, 1), kernel_initializer='he_normal',))(o2)
-
-        # o, o2 = self.crop(o, o2) # 剪裁到原图大小
-        o = Add()([o, o2])
-
-        # （pool4 + 上采样后的pool5）的结果 再次做反卷积，尺寸恢复到原图的1/8
-        o = Conv2DTranspose(filters=n_classes, kernel_size=(3, 3),  strides=(2, 2), use_bias=False)(o)
-
-        # pool3做1x1卷积后与上面的结果融合
-        o2 = pool3
-        o2 = (Conv2D(filters=n_classes,  kernel_size=(1, 1), kernel_initializer='he_normal'))(o2)
-        # o2, o = self.crop(o2, o)
-        o = Add()([o2, o])
-
-        # 最后一个反卷积，将尺寸从1/8，直接恢复到原图大小（stride=8)
-        o = Conv2DTranspose(filters=n_classes, kernel_size=(3, 3),  strides=(8, 8), use_bias=False)(o)
-
-        return o

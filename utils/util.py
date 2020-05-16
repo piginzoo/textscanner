@@ -3,6 +3,21 @@ import time,os,datetime,logging
 
 logger = logging.getLogger("Util")
 
+
+def call_debug(layer, input):
+    if type(input) == list:
+        input_shape = [str(i.shape) for i in input]
+    else:
+        input_shape = input.shape
+    output = layer(input)
+    if type(output) == list:
+        output_shape = [str(o.shape) for o in output]
+    else:
+        output_shape = output.shape
+    print("Layer: {:25s}    {:30s} => {:30s}".format(layer.name, str(input_shape), str(output_shape)))
+    return output
+
+
 def timestamp_s():
     s = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
     return s

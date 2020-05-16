@@ -33,8 +33,8 @@ class TextScannerModel(Model):
         self.fcn = FCNLayer(self.resnet50_model)
 
     def call(self, inputs, training=None):
-        x = self.fcn(inputs)
-        x = charactor_segmantation = self.class_branch(x)
-        order_map,localization_map = self.geometry_branch(x)
+        fcn_features = self.fcn(inputs)
+        charactor_segmantation = self.class_branch(fcn_features)
+        order_map,localization_map = self.geometry_branch(fcn_features)
         # word = self.word_formation(charactor_segmantation,order_map)
         return charactor_segmantation, order_map, localization_map

@@ -7,8 +7,10 @@ from tensorflow.keras.optimizers import Adam
 import conf
 import os
 import logging
-
+import tensorflow as tf
+from tensorflow.keras import Input
 logger = logging.getLogger(__name__)
+
 
 
 def train(args):
@@ -37,7 +39,7 @@ def train(args):
 
     timestamp = util.timestamp_s()
     tb_log_name = os.path.join(conf.DIR_TBOARD, timestamp)
-    checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}-acc{acc:.4f}-val{val_acc:.4f}.hdf5"
+    checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}-acc{accuracy:.4f}-val{val_accuracy:.4f}.hdf5"
 
     # 如果checkpoint文件存在，就加载之
     if args.retrain:
@@ -56,6 +58,10 @@ def train(args):
     tboard = TensorBoard(log_dir=tb_log_name,histogram_freq=1,batch_size=2,write_grads=True)
     early_stop = EarlyStopping(monitor='val_acc', patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
+
+    # input = Input(shape=(64, 256,3), dtype=tf.float32)
+    # model.build(input.shape)
+    # model.summary()
 
     model.fit_generator(
         generator=train_sequence,
