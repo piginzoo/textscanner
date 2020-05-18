@@ -1,8 +1,10 @@
 logs/
+
 !data/
 data/*
 !data/test/
 !data/charset.txt
+
 .idea
 *.pyc
 */*.pyc

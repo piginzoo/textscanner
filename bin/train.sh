@@ -35,12 +35,14 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     python -m main.train \
     --name=textscanner \
     --epochs=5 \
+    --debug_mode \
     --debug_step=1 \
     --steps_per_epoch=3 \
     --batch=4 \
     --retrain=True \
     --learning_rate=0.001 \
     --validation_batch=3 \
+    --validation_steps=1 \
     --preprocess_num=20 \
     --workers=1 \
     --early_stop=3

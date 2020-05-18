@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 HUBER_DELTA = 0.5
 
+
 def localization_map_loss():
     def smoothL1(y_true, y_pred):
         x = K.abs(y_true - y_pred)
@@ -28,7 +29,8 @@ class TextScannerModel(Model):
         self.input_image = Input(shape=(conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH, 3),name='input_image')
         self.class_branch = ClassBranchLayer(len(charset))
         self.geometry_branch = GeometryBranch(conf)
-        # self.word_formation = WordFormation()        # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
+        # self.word_formation = WordFormation()
+        # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
         self.resnet50_model = ResNet50(include_top=False,weights='imagenet')
         self.fcn = FCNLayer(self.resnet50_model)
 

@@ -17,7 +17,7 @@ class FCNLayer(Layer):
         self.resnet50_model = resnet50_model
 
 
-    def build(self,input_image,FILTER_NUM=512):
+    def build(self,input_image,FILTER_NUM=4):
 
         ############################
         # encoder part

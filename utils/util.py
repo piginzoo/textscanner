@@ -4,17 +4,29 @@ import time,os,datetime,logging
 logger = logging.getLogger("Util")
 
 
-def call_debug(layer, input):
-    if type(input) == list:
-        input_shape = [str(i.shape) for i in input]
-    else:
-        input_shape = input.shape
-    output = layer(input)
+def call_debug(layer, *input):
+
+    layer_name = "Unknown"
+    if hasattr(layer, "__name__"):
+        layer_name = layer.__name__
+    if hasattr(layer, "name"):
+        layer_name = layer.name
+
+    input_shape = "Unknown"
+    if type(input[0]) == list:
+        input_shape = str([str(i.shape) for i in input[0]])
+    if hasattr(input[0],"shape"):
+        input_shape = str(input[0].shape)
+
+    assert callable(layer), "layer[" + layer_name + "] is callable"
+    output = layer(*input)
+
     if type(output) == list:
-        output_shape = [str(o.shape) for o in output]
+        output_shape = str([str(o.shape) for o in output])
     else:
-        output_shape = output.shape
-    print("Layer: {:25s}    {:30s} => {:30s}".format(layer.name, str(input_shape), str(output_shape)))
+        output_shape = str(output.shape)
+
+    print("Layer: {:25s}    {:30s} => {:30s}".format(layer_name, input_shape, output_shape))
     return output
 
 

@@ -12,7 +12,6 @@ from tensorflow.keras import Input
 logger = logging.getLogger(__name__)
 
 
-
 def train(args):
     charset = label_utils.get_charset(conf.CHARSET)
     conf.CHARSET_SIZE = len(charset)
@@ -20,7 +19,7 @@ def train(args):
     model = TextScannerModel(conf,charset)
     losses =['categorical_crossentropy','categorical_crossentropy',localization_map_loss()]
     loss_weights = [1,10,10]
-    model.compile(Adam(),loss=losses,loss_weights=loss_weights,metrics=['accuracy'])
+    model.compile(Adam(),loss=losses,loss_weights=loss_weights,metrics=['accuracy'],run_eagerly=True)
 
     train_sequence = SequenceData(name="Train",
                                   label_dir=args.train_label_dir,
@@ -39,7 +38,8 @@ def train(args):
 
     timestamp = util.timestamp_s()
     tb_log_name = os.path.join(conf.DIR_TBOARD, timestamp)
-    checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}-acc{accuracy:.4f}-val{val_accuracy:.4f}.hdf5"
+    # checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}-acc{accuracy:.4f}-val{val_accuracy:.4f}.hdf5"
+    checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}.hdf5"
 
     # 如果checkpoint文件存在，就加载之
     if args.retrain:
@@ -62,16 +62,19 @@ def train(args):
     # input = Input(shape=(64, 256,3), dtype=tf.float32)
     # model.build(input.shape)
     # model.summary()
-
-    model.fit_generator(
-        generator=train_sequence,
+    print("---------")
+    tf.executing_eagerly()
+    print("---------")
+    model.fit(
+        x=train_sequence,
         steps_per_epoch=args.steps_per_epoch,#其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
         epochs=args.epochs,
         workers=args.workers,   # 同时启动多少个进程加载
         callbacks=[tboard,checkpoint,early_stop],
         use_multiprocessing=True,
         validation_data=valid_sequence,
-        validation_steps=args.validation_steps)
+        validation_steps=args.validation_steps,
+        verbose=2)
 
     logger.info("Train end训练结束!")
 

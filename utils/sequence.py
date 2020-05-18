@@ -50,6 +50,7 @@ class SequenceData(Sequence):
             image = cv2.resize(image, (self.conf.INPUT_IMAGE_WIDTH, self.conf.INPUT_IMAGE_HEIGHT))
             image = image/ 255.0 # TODO 要变成 float，否则报错
             images.append(image)
+        logger.debug("[%s] loaded %d data",self.name,len(images))
         return np.array(images),[np.array(batch_cs),np.array(batch_om),np.array(batch_lm)]
         # {
         #     'charactor_segmantation':np.array(batch_cs),
@@ -58,7 +59,6 @@ class SequenceData(Sequence):
         # }
 
     def __getitem__(self, idx):
-        # logger.debug("[%s] load index:%r",self.name,idx)
         batch_data_list = self.data_list[ idx * self.batch_size : (idx + 1) * self.batch_size]
         images,labels = self.load_image_label(batch_data_list)
         return images,labels
