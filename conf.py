@@ -19,6 +19,8 @@ FEATURE_MAP_REDUCE = 8   # 相比原始图片，feature map缩小几倍（送入
 
 DEBUG = True
 
+FILTER_NUM = 4
+
 DIR_LOGS="logs"
 DIR_TBOARD="logs/tboard"
 DIR_MODEL="model"

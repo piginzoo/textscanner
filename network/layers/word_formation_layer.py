@@ -1,4 +1,4 @@
-from tensorflow.python.keras.layers import Layer
+from tensorflow.keras.layers import Layer
 import tensorflow
 
 class WordFormation(Layer):

@@ -18,7 +18,7 @@ def train(args):
 
     model = TextScannerModel(conf,charset)
     losses =['categorical_crossentropy','categorical_crossentropy',localization_map_loss()]
-    loss_weights = [1,10,10]
+    loss_weights = [1,10,10] # weight value refer from paper
     model.compile(Adam(),loss=losses,loss_weights=loss_weights,metrics=['accuracy'],run_eagerly=True)
 
     train_sequence = SequenceData(name="Train",
@@ -62,9 +62,8 @@ def train(args):
     # input = Input(shape=(64, 256,3), dtype=tf.float32)
     # model.build(input.shape)
     # model.summary()
-    print("---------")
-    tf.executing_eagerly()
-    print("---------")
+    # tf.executing_eagerly()
+
     model.fit(
         x=train_sequence,
         steps_per_epoch=args.steps_per_epoch,#其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
@@ -75,6 +74,8 @@ def train(args):
         validation_data=valid_sequence,
         validation_steps=args.validation_steps,
         verbose=2)
+
+    model.summary()
 
     logger.info("Train end训练结束!")
 

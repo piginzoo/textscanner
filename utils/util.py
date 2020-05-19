@@ -21,7 +21,7 @@ def call_debug(layer, *input):
     assert callable(layer), "layer[" + layer_name + "] is callable"
     output = layer(*input)
 
-    if type(output) == list:
+    if type(output) == list or type(output) == tuple:
         output_shape = str([str(o.shape) for o in output])
     else:
         output_shape = str(output.shape)

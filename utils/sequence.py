@@ -29,9 +29,9 @@ class SequenceData(Sequence):
     def load_image_label(self,batch_data_list):
 
         images = []
-        batch_cs = []
-        batch_om = []
-        batch_lm = []
+        batch_cs = [] # Character Segment
+        batch_om = [] # Order Map
+        batch_lm = [] # Localization Map
         for image_path,json_path in batch_data_list:
             image = cv2.imread(image_path)
 
