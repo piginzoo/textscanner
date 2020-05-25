@@ -34,18 +34,18 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     #      如果你规定，那就得比它小才可以，另外还要验证，是不是把每个批次的结果做平均，还是算整体的
     python -m main.train \
     --name=textscanner \
-    --epochs=5 \
+    --epochs=1 \
     --debug_mode \
     --debug_step=1 \
-    --steps_per_epoch=3 \
-    --batch=4 \
+    --steps_per_epoch=1 \
+    --batch=3 \
     --retrain=True \
     --learning_rate=0.001 \
-    --validation_batch=3 \
+    --validation_batch=1 \
     --validation_steps=1 \
-    --preprocess_num=20 \
+    --preprocess_num=1 \
     --workers=1 \
-    --early_stop=3
+    --early_stop=1
 
     if [ "$1" == "debug" ]; then
         # 恢复源文件，防止git提交

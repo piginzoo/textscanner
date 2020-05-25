@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 import time,os,datetime,logging
+import conf
 
 logger = logging.getLogger("Util")
 
 
 def call_debug(layer, *input):
+
+    if not conf.DEBUG:
+        return layer(*input)
 
     layer_name = "Unknown"
     if hasattr(layer, "__name__"):

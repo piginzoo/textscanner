@@ -9,7 +9,7 @@ CHAR_ETX = "\x03"
 CHAR_STX = "\x02"
 CHAR_NULL = " "
 
-MAX_SEQUENCE = 10        # 最大的识别汉字的长度
+MAX_SEQUENCE = 30        # 最大的识别汉字的长度
 MASK_VALUE = 0
 CHARSET = "data/charset.txt" # 3770的一级字库
 INPUT_IMAGE_HEIGHT = 64  # 图像归一化的高度
@@ -19,22 +19,23 @@ FEATURE_MAP_REDUCE = 8   # 相比原始图片，feature map缩小几倍（送入
 
 DEBUG = True
 
-FILTER_NUM = 4
+FILTER_NUM = 512
 
 DIR_LOGS="logs"
 DIR_TBOARD="logs/tboard"
 DIR_MODEL="model"
 DIR_CHECKPOINT="model/checkpoint"
+LABLE_FORMAT="plaintext" # 标签格式：labelme，json格式的；plaintext，纯文本的
 
 # 伐喜欢tensorflow的flags方式，使用朴素的argparse
 # dislike the flags style of tensorflow, instead using argparse
 def init_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--name" ,default="attention_ocr",type=str,help="")
-    parser.add_argument("--train_label_dir",    default="data/test",    type=str, help="")
-    parser.add_argument("--validate_label_dir", default="data/test", type=str, help="")
-    parser.add_argument("--train_label_file",    default="data/train.txt",    type=str, help="")
-    parser.add_argument("--validate_label_file", default="data/validate.txt", type=str, help="")
+    parser.add_argument("--train_label_dir",    default="data/train",    type=str, help="")
+    parser.add_argument("--validate_label_dir", default="data/train", type=str, help="")
+    parser.add_argument("--train_label_file",    default="data/train/train.txt", type=str, help="")
+    parser.add_argument("--validate_label_file", default="data/train/train.txt", type=str, help="")
     parser.add_argument("--epochs" ,default=1,type=int,help="")
     parser.add_argument("--debug_mode", default=False, action='store_true', help="")
     parser.add_argument("--debug_step", default=1,type=int,help="") # 多少步骤打印注意力
@@ -54,6 +55,10 @@ def init_args():
     print(args)
 
     sys.modules[__name__].DEBUG = args.debug_mode
+
+    if args.debug_mode:
+        print("程序允许在调试模式！")
+        sys.modules[__name__].FILTER_NUM = 1
 
     return args
 

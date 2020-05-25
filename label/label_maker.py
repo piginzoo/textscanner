@@ -54,14 +54,18 @@ class LabelGenerater():
 
         character_segment = self.render_character_segemention(image_labels)
         localization_map = np.zeros(self.target_image_shape, dtype=np.float32)
-        order_maps = np.zeros((self.max_sequence, *self.target_image_shape), dtype=np.float32)
+        order_maps = np.zeros((*self.target_image_shape,self.max_sequence), dtype=np.float32)
+
+        assert xmins.shape[0] <= self.max_sequence, \
+            f"the train/validate label text length[{len(image_labels.labels)}] must be less than pre-defined max sequence length[{self.max_sequence}]"
 
         # process each character
         for i in range(xmins.shape[0]):
 
             # Y_k is the normalized_gaussian map, comply with the name in the paper
             Y_k = self.gaussian_normalize(self.target_image_shape,xmins[i], xmaxs[i], ymins[i], ymaxs[i])
-            self.render_order_map(order_maps[i],Y_k,threshold=self.ζ)
+
+            self.render_order_map(order_maps[:,:,i],Y_k,threshold=self.ζ)
             self.render_localization_map(localization_map,Y_k)
 
         return character_segment,order_maps,localization_map
@@ -101,6 +105,7 @@ class LabelGenerater():
             word_fill.fill(char_id)
 
             mask = np.zeros(self.target_image_shape, np.uint8)
+
             cv2.fillPoly(mask, [shrinked_poly], 1)
             mask = np.array(mask)
 

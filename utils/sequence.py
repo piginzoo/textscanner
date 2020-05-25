@@ -32,12 +32,14 @@ class SequenceData(Sequence):
         batch_cs = [] # Character Segment
         batch_om = [] # Order Map
         batch_lm = [] # Localization Map
-        for image_path,json_path in batch_data_list:
+        for image_path,label_path in batch_data_list:
             image = cv2.imread(image_path)
 
-            with open(json_path,encoding="utf-8") as f:
-                json = f.read()
-            il = ImageLabel(image,json)
+            label_file = open(label_path,encoding="utf-8")
+            data = label_file.readlines()
+            label_file.close()
+            logger.debug("加载标签文件[%s] %d 行", label_path, len(data))
+            il = ImageLabel(image, data, self.conf.LABLE_FORMAT)
 
             character_segment, order_maps, localization_map = self.label_generator.process(il)
             character_segment = to_categorical(character_segment, num_classes=len(self.charsets)+1)
@@ -72,5 +74,9 @@ class SequenceData(Sequence):
     def initialize(self,args):
         logger.info("[%s]begin to load image/labels",self.name)
         start_time = time.time()
-        self.data_list = label_utils.load_labels(self.label_dir,args.preprocess_num)
+        self.data_list = label_utils.load_labels(self.label_dir)
+        if len(self.data_list)==0:
+            msg= f"[{self.name}] 图像和标签加载失败[目录：{self.label_dir}]，0条！"
+            raise ValueError(msg)
+
         logger.info("[%s]loaded [%d] labels,elapsed time [%d]s", self.name, len(self.data_list),(time.time() - start_time))

@@ -61,7 +61,7 @@ def shrink_poly(polys, ratio=0.5):
     """
     area = abs(pyclipper.Area(polys)) # 面积
     _perimeter = perimeter(polys) # 周长
-    polys_shrink = []
+
     pco = pyclipper.PyclipperOffset()
     if _perimeter:
         # TODO:不知道为何这样计算???
@@ -70,9 +70,12 @@ def shrink_poly(polys, ratio=0.5):
         # 缩小后返回多边形
         polys_shrink = pco.Execute(-d)
     else:
+        logger.warning("多边形周长为0")
         return None
 
-    if len(polys_shrink)==0: return None
+    if len(polys_shrink)==0:
+        logger.debug("收缩多边形[面积=%f]失败，使用原有坐标",area)
+        return polys
     shrinked_bbox = np.array(polys_shrink[0])
     return shrinked_bbox
 

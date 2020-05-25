@@ -7,8 +7,6 @@ from tensorflow.keras.optimizers import Adam
 import conf
 import os
 import logging
-import tensorflow as tf
-from tensorflow.keras import Input
 logger = logging.getLogger(__name__)
 
 
