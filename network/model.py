@@ -41,6 +41,6 @@ class TextScannerModel(Model):
     def call(self, inputs, training=None):
         fcn_features = _call(self.fcn, inputs)
         charactor_segmantation = _call(self.class_branch, fcn_features)
-        order_map, localization_map = _call(self.geometry_branch, fcn_features)
+        order_map, localization_map, order_segment = _call(self.geometry_branch, fcn_features)
         # word = self.word_formation(charactor_segmantation,order_map)
-        return charactor_segmantation, order_map, localization_map
+        return charactor_segmantation, order_map, localization_map, order_segment

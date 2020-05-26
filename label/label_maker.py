@@ -75,10 +75,14 @@ class LabelGenerater():
     def gaussian_normalize(self, shape, xmin, xmax, ymin, ymax):
         out = np.zeros(shape)
         h, w = shape[:2]
-        # find the center of polygon
+        # find the "Center" of polygon
         y = (ymax+ymin+1)//2
         x = (xmax+xmin+1)//2
-        if not (w > x and h > y): return None
+        if not (w > x and h > y):
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning("标注超出图像范围，生成高斯样本失败：要求w>x,h>y(w:%f,x:%f,h:%f,y:%f)", w,x,h,y)
+            return None
 
         # prepare the gaussian distribution,refer to paper <<Label Generation>>
         out[y, x] = 1.

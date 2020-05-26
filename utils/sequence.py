@@ -33,25 +33,25 @@ class SequenceData(Sequence):
         batch_om = [] # Order Map
         batch_lm = [] # Localization Map
         for image_path,label_path in batch_data_list:
+
             image = cv2.imread(image_path)
+            self.image = cv2.resize(image, (self.conf.INPUT_IMAGE_WIDTH,self.conf.INPUT_IMAGE_HEIGHT)) # resize图像到标准尺寸
+            image = image/ 255.0 # TODO 要变成 float，否则报错
+            images.append(image)
 
             label_file = open(label_path,encoding="utf-8")
             data = label_file.readlines()
             label_file.close()
             logger.debug("加载标签文件[%s] %d 行", label_path, len(data))
-            il = ImageLabel(image, data, self.conf.LABLE_FORMAT)
+            il = ImageLabel(image,data,self.conf.LABLE_FORMAT)
 
-            character_segment, order_maps, localization_map = self.label_generator.process(il)
+            character_segment, order_maps, localization_map = self.label_generator.process(il) # 内部会调整bbox坐标
             character_segment = to_categorical(character_segment, num_classes=len(self.charsets)+1)
 
             batch_cs.append(character_segment)
             batch_om.append(order_maps)
             batch_lm.append(localization_map)
 
-            # TODO 需要和ImageLabel的内容统一考虑
-            image = cv2.resize(image, (self.conf.INPUT_IMAGE_WIDTH, self.conf.INPUT_IMAGE_HEIGHT))
-            image = image/ 255.0 # TODO 要变成 float，否则报错
-            images.append(image)
         logger.debug("[%s] loaded %d data",self.name,len(images))
         return np.array(images),[np.array(batch_cs),np.array(batch_om),np.array(batch_lm)]
         # {

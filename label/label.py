@@ -3,10 +3,23 @@ import json
 
 
 class ImageLabel:
+    """
+        Wrap the image and label data
+        there are 2 types:
+        - labelme format: like https://github.com/wkentaro/labelme/blob/master/examples/tutorial/apc2016_obj3.json
+        - plaintext: like
+                >>>
+                你好，世界
+                11,12,21,22,31,32,41,42,你
+                ...
+                <<<
+        also, inside the class, the label need to convert to standard size(64x256)
+    """
 
+    # target_size is (W,H)
     def __init__(self, image, data, format):
-        self.image = image
         self.format = format
+        self.image = image
         self.labels = self.load(data)
 
     def load(self, data):
@@ -32,10 +45,10 @@ class ImageLabel:
         for s in shapes:
             label = s['label']
             points = s['points']
-            self.labels.append(Label(label, points))
+            labels.append(Label(label, points))
         return labels
 
-    # 格式：
+    # format：
     #   你好，世界
     #   11,12,21,22,31,32,41,42,你
     #   11,12,21,22,31,32,41,42,好
@@ -44,9 +57,9 @@ class ImageLabel:
 
         assert type(data) == list
 
-        # data[0],第一行，是整个字符串，忽略
+        # data[0], bypass the first line, which is the label strings
 
-        # 第2行至结束，解析
+        # parse line #2 to end
         labels = []
         for i in range(1, len(data)):
             # "11,12,21,22,31,32,41,42,你"
