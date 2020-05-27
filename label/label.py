@@ -1,5 +1,9 @@
+from utils import util
 import numpy as np
-import json
+import json, cv2
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ImageLabel:
@@ -13,13 +17,16 @@ class ImageLabel:
                 11,12,21,22,31,32,41,42,你
                 ...
                 <<<
-        also, inside the class, the label need to convert to standard size(64x256)
+        more, ImageLabel is not in charge of resize to standard size (64x256), later process do it.
     """
 
-    # target_size is (W,H)
-    def __init__(self, image, data, format):
+    def __init__(self, image, data, format, target_size):
         self.format = format
-        self.image = image
+        self.image = cv2.resize(image, target_size)
+
+        self.target_size = target_size  # (W,H)
+        self.orignal_size = (image.shape[1], image.shape[0])  # (W,H)
+
         self.labels = self.load(data)
 
     def load(self, data):
@@ -45,6 +52,7 @@ class ImageLabel:
         for s in shapes:
             label = s['label']
             points = s['points']
+            points = util.resize_bboxes(points, original_size=self.orignal_size, target_size=self.target_size)
             labels.append(Label(label, points))
         return labels
 
@@ -64,9 +72,10 @@ class ImageLabel:
         for i in range(1, len(data)):
             # "11,12,21,22,31,32,41,42,你"
             line = data[i]
-            line = line.replace("\n","")
+            line = line.replace("\n", "")
 
             line_data = line.split(",")
+
             points = line_data[:8]
             label = line_data[8]
 
@@ -74,6 +83,9 @@ class ImageLabel:
             points = [int(p.strip()) for p in points]
             points = np.array(points)
             points = np.reshape(points, (4, 2))
+
+            # adjust all bboxes' coordinators
+            points = util.resize_bboxes(points, original_size=self.orignal_size, target_size=self.target_size)
             labels.append(Label(label, points))
         return labels
 
@@ -95,10 +107,3 @@ class Label:
         assert bbox.shape == (4, 2)
         self.bbox = bbox
         self.label = label
-
-
-if __name__ == "__main__":
-    f = open("data/test/a.json", encoding="utf-8")
-    data = f.read()
-
-    il = ImageLabel(data)

@@ -42,18 +42,34 @@ def timestamp_s():
     return s
 
 
+# bboxes[4,2]
 def resize_bboxes(bboxes, original_size, target_size):
-    w,h = original_size
+    # logger.debug("Adjust bboxes from %r => %r", original_size, target_size)
+    # logger.debug(bboxes)
+    # logger.debug("===============>")
+
+    w, h = original_size
     ratio_x = target_size[0] / w
     ratio_y = target_size[1] / h
 
-    # bbox: [4,2]
+    # bboxes: [4,2]
     bboxes = np.array(bboxes)
-    bboxes[:, 0] *= ratio_x
-    bboxes[:, 1] *= ratio_y
+    bboxes[:, 0] = bboxes[:, 0] * ratio_x
+    bboxes[:, 1] = bboxes[:, 1] * ratio_y
+
+    # if the coordinator is minus, set to 0
+    minus_indices = bboxes < 0
+    bboxes[minus_indices] = 0
+
+    # adjust out boundary for width to max width
+    out_bound_indices = bboxes[:, 0] > target_size[0]
+    bboxes[out_bound_indices, 0] = target_size[0]
+
+    # adjust out boundary for height to max height
+    out_bound_indices = bboxes[:, 1] > target_size[1]
+    bboxes[out_bound_indices, 1] = target_size[1]
 
     return bboxes.tolist()
-
 
 
 def get_checkpoint(dir):

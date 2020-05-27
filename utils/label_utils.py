@@ -57,7 +57,7 @@ def get_charset(charset_file):
     charset = [ch.strip("\n") for ch in charset]
     charset = "".join(charset)
     charset = list(charset)
-    logger.info("加载了词表，一共[%d]个字符", len(charset))
+    logger.info(" Load character table, totally [%d] characters", len(charset))
     return charset
 
 

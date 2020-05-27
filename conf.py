@@ -50,14 +50,14 @@ def init_args():
     parser.add_argument("--early_stop", default=1, type=int, help="")
     args = parser.parse_args()
     print("==============================")
-    print("所有的使用的配置：")
+    print(" Configurations : ")
     print("==============================")
     print(args)
 
     sys.modules[__name__].DEBUG = args.debug_mode
 
     if args.debug_mode:
-        print("程序允许在调试模式！")
+        print("Running in DEBUG mode!")
         sys.modules[__name__].FILTER_NUM = 1
 
     return args
