@@ -33,7 +33,7 @@ def call_debug(layer, *input):
     else:
         output_shape = str(output.shape)
 
-    print("Layer: {:25s}    {:30s} => {:30s}".format(layer_name, input_shape, output_shape))
+    logger.debug("Layer: {:25s}    {:30s} => {:30s}".format(layer_name, input_shape, output_shape))
     return output
 
 
@@ -44,13 +44,15 @@ def timestamp_s():
 
 # bboxes[4,2]
 def resize_bboxes(bboxes, original_size, target_size):
-    # logger.debug("Adjust bboxes from %r => %r", original_size, target_size)
-    # logger.debug(bboxes)
-    # logger.debug("===============>")
+    logger.debug("Adjust bboxes from %r => %r", original_size, target_size)
+    logger.debug("Original:%r",bboxes)
 
     w, h = original_size
     ratio_x = target_size[0] / w
     ratio_y = target_size[1] / h
+
+    logger.debug("ratio_x:%r",ratio_x)
+    logger.debug("ratio_y:%r", ratio_y)
 
     # bboxes: [4,2]
     bboxes = np.array(bboxes)
@@ -68,6 +70,8 @@ def resize_bboxes(bboxes, original_size, target_size):
     # adjust out boundary for height to max height
     out_bound_indices = bboxes[:, 1] > target_size[1]
     bboxes[out_bound_indices, 1] = target_size[1]
+
+    logger.debug("Resized:%r",bboxes)
 
     return bboxes.tolist()
 

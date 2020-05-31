@@ -17,12 +17,12 @@ class ImageLabel:
                 11,12,21,22,31,32,41,42,你
                 ...
                 <<<
-        more, ImageLabel is not in charge of resize to standard size (64x256), later process do it.
+        more, ImageLabel is in charge of resizing to standard size (64x256).
     """
 
     def __init__(self, image, data, format, target_size):
         self.format = format
-        self.image = cv2.resize(image, target_size)
+        self.image = cv2.resize(image, target_size) # do the standard resizing
 
         self.target_size = target_size  # (W,H)
         self.orignal_size = (image.shape[1], image.shape[0])  # (W,H)
@@ -86,6 +86,9 @@ class ImageLabel:
 
             # adjust all bboxes' coordinators
             points = util.resize_bboxes(points, original_size=self.orignal_size, target_size=self.target_size)
+
+            logger.debug("resized bbox:%r", points)
+
             labels.append(Label(label, points))
         return labels
 

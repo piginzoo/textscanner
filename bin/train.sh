@@ -13,7 +13,7 @@
 #    --preprocess_num=100 \
 #    --early_stop=10 \              # 如果10个epochs都没提高，就停了吧，大概是1万个batch
 
-echo "开始训练"
+echo "Begin to train ..."
 
 Date=$(date +%Y%m%d%H%M)
 export CUDA_VISIBLE_DEVICES=0
@@ -22,11 +22,11 @@ export CUDA_VISIBLE_DEVICES=0
 if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
 
     if [ "$1" == "debug" ]; then
-        echo "_/_/_/_/_/_/  启动PDB调试模式  _/_/_/_/_/_/"
+        echo "_/_/_/_/_/_/  Start PDB Debugging...  _/_/_/_/_/_/"
         sed -i '1i\import pdb; pdb.set_trace()\n' main/train.py
     fi
 
-    echo "调试模式"
+    echo "In DEBUG mode ..."
     #    --validation_steps=1  \
     # 测试：
     # 训练：10张训练，但是steps_per_epoch=2，batch=3，预想6张后，就会重新shuffle
@@ -56,14 +56,14 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
 fi
 
 if [ "$1" = "stop" ]; then
-    echo "停止训练"
+    echo "Stop Training!"
     ps aux|grep python|grep name=textscanner|awk '{print $2}'|xargs kill -9
     exit
 fi
 
 
-echo "生产模式"
-echo "使用 #$CUDA_VISIBLE_DEVICES GPU"
+echo "Production Mode ..."
+echo "Using #$CUDA_VISIBLE_DEVICES GPU"
 
 nohup python -m main.train \
     --name=textscanner \

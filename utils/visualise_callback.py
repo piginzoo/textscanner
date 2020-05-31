@@ -1,12 +1,12 @@
 from tensorflow.keras.callbacks import Callback
+from tensorflow.python.framework.ops import EagerTensor
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
 from utils import label_utils
 import tensorflow as tf
 import numpy as np
 import logging
-import cv2
-import io
+import io,cv2
 
 logger = logging.getLogger(__name__)
 
@@ -16,64 +16,84 @@ class TBoardVisual(Callback):
         Visualization the training process for debugging
     """
 
-    def __init__(self, tag, tboard_dir, charset, args):
+    def __init__(self, tag, tboard_dir, charset, args, validate_sequence):
         super().__init__()
         self.tag = tag
         self.args = args
         self.tboard_dir = tboard_dir
         self.charset = charset
         self.font = ImageFont.truetype("data/font/simsun.ttc", 10)  # 设置字体
+        self.validate_sequence = validate_sequence
 
     def on_batch_end(self, batch, logs=None):
 
         if batch % self.args.debug_step != 0: return
 
-        # self.validation_data is framework pre-defined variable
-        np.random.shuffle(self.validation_data.data_list)
-        data = self.validation_data.data_list[:9]  # hard code 9 images
-        # images, labels: [batch_cs,batch_om,batch_lm)]
-        images, labels = self.validation_data.load_image_label(data)
+        logger.debug("Try to dump the debug images to tboard")
 
-        writer = tf.summary.FileWriter(self.tboard_dir)
+        # self.validation_data is framework pre-defined variable
+        np.random.shuffle(self.validate_sequence.data_list)
+        data = self.validate_sequence.data_list[:9]  # hard code 9 images
+        # images, labels: [batch_cs,batch_om,batch_lm)]
+        images, labels = self.validate_sequence.load_image_label(data)
+
+        writer = tf.summary.create_file_writer(self.tboard_dir)
+
+        # import pdb
+        # pdb.set_trace()
+        pred = self.model(images)  # return [character_segment, order_map, localization_map]
+        logger.debug("Model call,input images:\t%r", images.shape)
+        logger.debug("Model call,return character_segment:\t%r", pred[0].shape)
+        logger.debug("Model call,return order_map:\t%r", pred[1].shape)
+        logger.debug("Model call,return localization_map:\t%r", pred[2].shape)
+
+        label_character_segments = labels[0]
+        label_localization_maps = labels[2]
+        label_order_maps = labels[1]
 
         for i in range(len(images)):
             image = images[i]
-            label = labels[i]
-            pred = self.model(images[i])  # [character_segment, order_map, localization_map]
 
-            label_character_segment = label[0]
-            label_localization_map = label[2]
-            label_order_map = label[1]
+            label_character_segment = label_character_segments[i]
+            label_localization_map = label_localization_maps[i]
+            label_order_map = label_order_maps[i]
 
-            pred_character_segment = pred[0]
-            pred_localization_map = pred[2]
-            pred_order_map = pred[1]
-            pred_order_segment = pred[3]
+            pred_character_segment = pred[0][i]
+            pred_localization_map = pred[2][i]
+            pred_order_map = pred[1][i]
+            # pred_order_segment = pred[3]
 
-            label = label_utils.prob2str(label_character_segment, self.charset)
-            pred = label_utils.prob2str(pred_character_segment, self.charset)
+            logger.debug("label_character_segment:%r", label_character_segment.shape)
+            logger.debug("label_localization_map:%r", label_localization_map.shape)
+            logger.debug("label_order_map:%r", label_order_map.shape)
+            logger.debug("pred_character_segment:%r", pred_character_segment.shape)
+            logger.debug("pred_localization_map:%r", pred_localization_map.shape)
+            logger.debug("pred_order_map:%r", pred_order_map.shape)
 
-            logger.debug("label字符串:%r", label)
-            logger.debug("pred字符串 :%r", pred)
+            label_character_segment = np.argmax(label_character_segment, axis=-1)
+            pred_character_segment = np.argmax(pred_character_segment, axis=-1)
+            label_order_map = np.argmax(label_order_map, axis=-1)
+            pred_order_map = np.argmax(pred_order_map, axis=-1)
 
-            self.draw(writer, "label_character_segment", image,
-                      label_character_segment, label, highlight=True)
-            self.draw(writer, "pred_character_segment", image,
-                      label_character_segment, pred, highlight=True)
+            self.draw_image(writer, f"label_character_segment_{i}", image, label_character_segment, highlight=True)
+            self.draw_image(writer, f"pred_character_segment_{i}", image, pred_character_segment, highlight=True)
+            self.draw_image(writer, f"label_localization_map_{i}", image, label_localization_map)
+            self.draw_image(writer, f"pred_localization_map_{i}", image, pred_localization_map)
+            self.draw_image(writer, f"label_order_maps_{i}", image, label_order_map)
+            self.draw_image(writer, f"pred_order_maps_{i}", image, pred_order_map)
 
-            self.draw(writer, "label_localization_map", image, label_localization_map)
-            self.draw(writer, "pred_localization_map", image, pred_localization_map)
-
-            self.draw(writer, "label_order_maps", image, label_order_map)
-            self.draw(writer, "pred_order_maps", image, pred_order_map)
-
-            self.draw(writer, "pred_order_segment", image, pred_order_segment)
+            # self.draw(writer, "pred_order_segment", image, pred_order_segment)
 
         writer.close()
 
         return
 
     def draw_image(self, writer, name, image, gt_pred, text=None, highlight=False):
+
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
+        if type(gt_pred)==EagerTensor:
+            gt_pred = gt_pred.numpy()
 
         if highlight:  # the color is too shallow, enhance it
             gt_pred_mask = gt_pred.copy()
@@ -84,21 +104,14 @@ class TBoardVisual(Callback):
             gt_pred = 255 * gt_pred / (gt_pred.max() + 0.001)
 
         # we use pyplot, because it can generator colorful image, not gray
-        image = np.ubyte(0.5 * gt_pred + 0.5 * image)
-        plt.clf()
-        image = plt.imshow(image)
-
-        draw = ImageDraw.Draw(image)
-        draw.text((2, 2), text, 'red', self.font)
-        output = io.BytesIO()
-        image.save(output, format='PNG')
-        image_string = output.getvalue()
-        output.close()
-        height, width, channel = image.shape
-        tf_img = tf.Summary.Image(height=height,
-                                  width=width,
-                                  colorspace=channel,
-                                  encoded_image_string=image_string)
-
-        summary = tf.Summary(value=[tf.Summary.Value(tag="{}/{}".format(name, name), image=tf_img)])
-        writer.add_summary(summary)
+        gt_pred = np.squeeze(gt_pred)
+        image = np.ubyte(0.5 * gt_pred + 0.5 * image) # merge the bbox mask and original image
+        plt.clf() # we use plt, which can help convert GRAY image to colorful
+        buffer = io.BytesIO()
+        plt.imsave(buffer, image, format='jpg') # dump the image to buffer
+        image = Image.open(buffer).convert('RGB')
+        buffer.close()
+        image = np.array(image) # convert from PIL image to ndarray
+        image = np.array([image]) # [W,H] => [W,H,1]
+        with writer.as_default():
+            tf.summary.image(name,image,step=0)

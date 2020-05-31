@@ -37,21 +37,16 @@ class SequenceData(Sequence):
             if not os.path.exists(image_path):
                 logger.warning("Image [%s] does not exist", image_path)
                 continue
-            image = cv2.imread(image_path)
-            image = image * 1.0  # must convert from int to float, otherwise raise exception, dont know why...
-
-            if image is None:
-                logger.warning("Image load failed ：%s",image_path)
-                continue
-
-            images.append(image)
 
             label_file = open(label_path, encoding="utf-8")
             data = label_file.readlines()
             label_file.close()
             logger.debug("Loaded label file [%s] %d lines", label_path, len(data))
-            target_size = (self.target_image_shape[1],self.target_image_shape[0])
-            il = ImageLabel(image, data, self.conf.LABLE_FORMAT, target_size=target_size) # inside it, the bboxes size will be adjust
+            target_size = (self.target_image_shape[1], self.target_image_shape[0])
+            il = ImageLabel(cv2.imread(image_path), data, self.conf.LABLE_FORMAT,
+                            target_size=target_size)  # inside it, the bboxes size will be adjust
+
+            images.append(il.image)
 
             character_segment, order_maps, localization_map = self.label_generator.process(il)
             character_segment = to_categorical(character_segment, num_classes=len(self.charsets) + 1)
@@ -60,7 +55,7 @@ class SequenceData(Sequence):
             batch_om.append(order_maps)
             batch_lm.append(localization_map)
 
-        images = np.array(images)
+        images = np.array(images,np.float32)
         batch_cs = np.array(batch_cs)
         batch_om = np.array(batch_om)
         batch_lm = np.array(batch_lm)

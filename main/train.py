@@ -57,7 +57,7 @@ def train(args):
     tboard = TensorBoard(log_dir=tb_log_name,histogram_freq=1,batch_size=2,write_grads=True)
     early_stop = EarlyStopping(monitor='val_acc', patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
-    visibile_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args)
+    visibile_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
     # input = Input(shape=(64, 256,3), dtype=tf.float32)
     # model.build(input.shape)
@@ -69,7 +69,7 @@ def train(args):
         steps_per_epoch=args.steps_per_epoch,#其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
         epochs=args.epochs,
         workers=args.workers,   # 同时启动多少个进程加载
-        callbacks=[tboard,checkpoint,early_stop], # visibile_debug
+        callbacks=[tboard,checkpoint,early_stop,visibile_debug],
         use_multiprocessing=True,
         validation_data=valid_sequence,
         validation_steps=args.validation_steps,

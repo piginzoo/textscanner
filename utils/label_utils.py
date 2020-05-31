@@ -44,7 +44,7 @@ def id2str(ids, characters):
 # id[1,3,56,4,35...] => xyzqf...
 def str2id(str_val, characters):
     if not str_val in characters:
-        print("字符{}在字典中不存在".format(str_val))
+        logger.warning("字符{}在字典中不存在".format(str_val))
         return 0
     return characters.index(str_val)
 

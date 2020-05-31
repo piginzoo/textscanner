@@ -85,7 +85,7 @@ class LabelGenerater():
         xmin = one_word_bboxes[:, 0].min()
         xmax = one_word_bboxes[:, 0].max()
         ymin = one_word_bboxes[:, 1].min()
-        ymax = one_word_bboxes[:, 1].min()
+        ymax = one_word_bboxes[:, 1].max()
 
         out = np.zeros(shape)
         h, w = shape[:2]

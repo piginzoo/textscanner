@@ -93,4 +93,4 @@ class GeometryBranch(Layer):
         # multiply S[B,H,W,N] * Q[B,H,W,1] => [B,H,W,N]
         order_map = order_segment * localization_map  # TODO 这个写法我用np.array测试了一下，没问题
 
-        return order_map, localization_map, order_segment
+        return order_map, localization_map#, order_segment
