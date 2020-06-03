@@ -1,17 +1,13 @@
 #!/usr/bin/env python
-import numpy as np
-import re
-import os, cv2
 from Levenshtein import *
+import numpy as np
 import logging
-from label.label import ImageLabel
+import re
+import os
 
 logger = logging.getLogger("Data_Util")
 
 rex = re.compile(' ')
-
-from conf import *
-
 
 def caculate_edit_distance(preds, labels):
     distances = [distance(p, l) for p, l in zip(preds, labels)]
@@ -49,14 +45,13 @@ def str2id(str_val, characters):
     return characters.index(str_val)
 
 
-# 加载字符集，charset.txt，最后一个是空格
-# 为了兼容charset.txt和charset6k.txt，增加鲁棒性，改一下
-# 加入3个特殊字符，0字符，padding用，STX和ETX，类似于词中的BOS，EOS
+# load charset, the first one is foreground, left are characters
 def get_charset(charset_file):
     charset = open(charset_file, 'r', encoding='utf-8').readlines()
     charset = [ch.strip("\n") for ch in charset]
     charset = "".join(charset)
     charset = list(charset)
+    charset.insert(0,' ') # this is important to for character map
     logger.info(" Load character table, totally [%d] characters", len(charset))
     return charset
 
@@ -168,16 +163,10 @@ def process_line(filename, label, charsets):
         logger.error("解析标签字符串失败，忽略此样本：[%s]", label)
         return None, None
 
-    # 前面，后面都加上空格，充当BOS和EOS
-    processed_label = CHAR_STX + processed_label + CHAR_ETX
-    # logger.debug("训练用标签插入了STX和ETX:%s",processed_label)
-
-    # 旧的方法，换成地道的 pad_sequences + to_categorical
     labels_index = convert_labels_to_ids(processed_label, charsets)
     if labels_index is None:
         return None, None
 
-    # labels_index = np.vstack(labels_index) # 因为是返回的是数组，所以要变成nparray，从list[(3700)]=>(sequence,3700)
     return filename, labels_index
 
 
@@ -204,8 +193,6 @@ def process_unknown_charactors_all(all_sentence, dict, replace_char=None):
 def process_unknown_charactors(sentence, dict, replace_char=None):
     unkowns = "０１２３４５６７８９ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ！＠＃＄％＾＆＊（）－＿＋＝｛｝［］｜＼＜＞，．。；：､？／×·■"
     knows = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()-_+={}[]|\<>,.。;:、?/x.."
-    confuse_letters = "OolIZS"
-    replace_letters = "0011zs"
 
     result = ""
 
@@ -229,11 +216,6 @@ def process_unknown_charactors(sentence, dict, replace_char=None):
             else:
                 logger.error("句子[%s]的字[%s]不属于词表,剔除此样本", sentence, letter)
                 return None
-
-        # 把容易混淆的字符和数字，替换一下
-        j = confuse_letters.find(letter)
-        if j != -1:
-            letter = replace_letters[j]
 
         result += letter
     return result

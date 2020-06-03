@@ -1,11 +1,11 @@
-from utils import image_utils, label_utils
+from utils.label.label_maker import LabelGenerater
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.utils import Sequence
+from utils.label.label import ImageLabel
+from utils.label import label_utils
+import time, cv2, os
 import logging, math
 import numpy as np
-from tensorflow.keras.utils import Sequence
-from tensorflow.keras.utils import to_categorical
-import time, cv2, os
-from label.label import ImageLabel
-from label.label_maker import LabelGenerater
 
 logger = logging.getLogger("SequenceData")
 
@@ -55,17 +55,16 @@ class SequenceData(Sequence):
             batch_om.append(order_maps)
             batch_lm.append(localization_map)
 
-        images = np.array(images,np.float32)
+        images = np.array(images, np.float32)
         batch_cs = np.array(batch_cs)
         batch_om = np.array(batch_om)
         batch_lm = np.array(batch_lm)
 
-        logger.debug("Loaded images:  %r", images.shape)
-        logger.debug("Loaded batch_cs:%r", batch_cs.shape)
-        logger.debug("Loaded batch_om:%r", batch_om.shape)
-        logger.debug("Loaded batch_lm:%r", batch_lm.shape)
-
-        logger.debug("[%s] loaded %d data", self.name, len(images))
+        # logger.debug("Loaded images:  %r", images.shape)
+        # logger.debug("Loaded batch_cs:%r", batch_cs.shape)
+        # logger.debug("Loaded batch_om:%r", batch_om.shape)
+        # logger.debug("Loaded batch_lm:%r", batch_lm.shape)
+        # logger.debug("[%s] loaded %d data", self.name, len(images))
 
         return images, [batch_cs, batch_om, batch_lm]
         # {

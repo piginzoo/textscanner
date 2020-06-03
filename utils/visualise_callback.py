@@ -1,12 +1,12 @@
-from tensorflow.keras.callbacks import Callback
 from tensorflow.python.framework.ops import EagerTensor
-from PIL import Image, ImageDraw, ImageFont
+from tensorflow.keras.callbacks import Callback
+from PIL import Image, ImageFont
 import matplotlib.pyplot as plt
-from utils import label_utils
 import tensorflow as tf
 import numpy as np
 import logging
-import io,cv2
+import io, cv2
+
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class TBoardVisual(Callback):
 
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-        if type(gt_pred)==EagerTensor:
+        if type(gt_pred) == EagerTensor:
             gt_pred = gt_pred.numpy()
 
         if highlight:  # the color is too shallow, enhance it
@@ -105,13 +105,13 @@ class TBoardVisual(Callback):
 
         # we use pyplot, because it can generator colorful image, not gray
         gt_pred = np.squeeze(gt_pred)
-        image = np.ubyte(0.5 * gt_pred + 0.5 * image) # merge the bbox mask and original image
-        plt.clf() # we use plt, which can help convert GRAY image to colorful
+        image = np.ubyte(0.5 * gt_pred + 0.5 * image)  # merge the bbox mask and original image
+        plt.clf()  # we use plt, which can help convert GRAY image to colorful
         buffer = io.BytesIO()
-        plt.imsave(buffer, image, format='jpg') # dump the image to buffer
+        plt.imsave(buffer, image, format='jpg')  # dump the image to buffer
         image = Image.open(buffer).convert('RGB')
         buffer.close()
-        image = np.array(image) # convert from PIL image to ndarray
-        image = np.array([image]) # [W,H] => [W,H,1]
+        image = np.array(image)  # convert from PIL image to ndarray
+        image = np.array([image])  # [W,H] => [W,H,1]
         with writer.as_default():
-            tf.summary.image(name,image,step=0)
+            tf.summary.image(name, image, step=0)

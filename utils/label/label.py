@@ -87,7 +87,7 @@ class ImageLabel:
             # adjust all bboxes' coordinators
             points = util.resize_bboxes(points, original_size=self.orignal_size, target_size=self.target_size)
 
-            logger.debug("resized bbox:%r", points)
+            # logger.debug("resized bbox:%r", points)
 
             labels.append(Label(label, points))
         return labels

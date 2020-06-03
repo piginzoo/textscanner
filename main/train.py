@@ -1,15 +1,24 @@
-from network.model import TextScannerModel,localization_map_loss
-from utils.sequence import SequenceData
-from utils import util, logger as log,label_utils
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint,EarlyStopping
+from network.model import TextScannerModel,localization_map_loss
+from utils.visualise_callback import TBoardVisual
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam
-from utils.visualise_callback import TBoardVisual
+from utils.sequence import SequenceData
+from utils import util, logger as log
+from utils.label import label_utils
+import logging
 import conf
 import os
-import logging
+
+
 logger = logging.getLogger(__name__)
 
+
+
+def words_accuracy(y_true, y_pred):
+    print("y_true:", y_true)
+    print("y_pred:", y_pred)
+    return 0
 
 def train(args):
     charset = label_utils.get_charset(conf.CHARSET)
@@ -18,7 +27,7 @@ def train(args):
     model = TextScannerModel(conf,charset)
     losses =['categorical_crossentropy','categorical_crossentropy',localization_map_loss()]
     loss_weights = [1,10,10] # weight value refer from paper
-    model.compile(Adam(),loss=losses,loss_weights=loss_weights,metrics=['accuracy'],run_eagerly=True)
+    model.compile(Adam(),loss=losses,loss_weights=loss_weights, metrics=[words_accuracy],run_eagerly=True)
 
     train_sequence = SequenceData(name="Train",
                                   label_dir=args.train_label_dir,
@@ -55,7 +64,7 @@ def train(args):
     logger.info("Train begin：")
 
     tboard = TensorBoard(log_dir=tb_log_name,histogram_freq=1,batch_size=2,write_grads=True)
-    early_stop = EarlyStopping(monitor='val_acc', patience=args.early_stop, verbose=1, mode='max')
+    early_stop = EarlyStopping(monitor='val_output_1_accuracy', patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
     visibile_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 

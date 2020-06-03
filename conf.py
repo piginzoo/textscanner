@@ -4,22 +4,16 @@ import argparse,sys
     define the basic configuration parameters,
     also define one command-lines argument parsing method: init_args
 '''
-
-CHAR_ETX = "\x03"
-CHAR_STX = "\x02"
-CHAR_NULL = " "
-
 MAX_SEQUENCE = 30        # 最大的识别汉字的长度
 MASK_VALUE = 0
-CHARSET = "data/charset.txt" # 3770的一级字库
+CHARSET = "config/charset.4100.txt" # 一级字库+标点符号+数字+二级字库中的地名/人名常用字（TianT.制作的）
 INPUT_IMAGE_HEIGHT = 64  # 图像归一化的高度
 INPUT_IMAGE_WIDTH = 256  # 最大的图像宽度
 GRU_HIDDEN_SIZE = 256    # GRU隐含层神经元数量
 FEATURE_MAP_REDUCE = 8   # 相比原始图片，feature map缩小几倍（送入bi-gru的解码器之前的feature map），目前是8，因为用的resnet50，缩小8倍
+FILTER_NUM = 256         # 自定义层中的默认隐含神经元的个数
 
 DEBUG = True
-
-FILTER_NUM = 512
 
 DIR_LOGS="logs"
 DIR_TBOARD="logs/tboard"

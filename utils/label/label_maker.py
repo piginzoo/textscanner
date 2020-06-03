@@ -1,6 +1,6 @@
+from utils.label import label_utils
 import scipy.ndimage.filters as fi
 from utils import image_utils
-from utils import label_utils
 import numpy as np
 import logging
 import cv2
@@ -117,13 +117,13 @@ class LabelGenerater():
             char_id = label_utils.str2id(label, self.charset)
 
             # shrink one word bboxes to avoid overlap
-            shrinked_poly = image_utils.shrink_poly(one_word_label.bbox,self.shrink)
+            shrinked_poly = image_utils.shrink_poly(one_word_label.bbox, self.shrink)
 
             word_fill = np.zeros(self.target_image_shape, np.uint32)
             word_fill.fill(char_id)
 
             mask = np.zeros(self.target_image_shape, np.uint8)
-            cv2.fillPoly(mask, [shrinked_poly], 1) # set those words' bbox area value to 1
+            cv2.fillPoly(mask, [shrinked_poly], 1)  # set those words' bbox area value to 1
 
             character_segment += mask * word_fill
             character_segment.astype(np.int32)
