@@ -1,5 +1,5 @@
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint,EarlyStopping
-from network.model import TextScannerModel,localization_map_loss
+from network.model import TextScannerModel
 from utils.visualise_callback import TBoardVisual
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam
@@ -14,20 +14,14 @@ import os
 logger = logging.getLogger(__name__)
 
 
-
-def words_accuracy(y_true, y_pred):
-    print("y_true:", y_true)
-    print("y_pred:", y_pred)
-    return 0
-
 def train(args):
     charset = label_utils.get_charset(conf.CHARSET)
     conf.CHARSET_SIZE = len(charset)
 
     model = TextScannerModel(conf,charset)
-    losses =['categorical_crossentropy','categorical_crossentropy',localization_map_loss()]
+    losses =['categorical_crossentropy','categorical_crossentropy',model.localization_map_loss()]
     loss_weights = [1,10,10] # weight value refer from paper
-    model.compile(Adam(),loss=losses,loss_weights=loss_weights, metrics=[words_accuracy],run_eagerly=True)
+    model.compile(Adam(),loss=losses,loss_weights=loss_weights, metrics=[model.words_accuracy],run_eagerly=True)
 
     train_sequence = SequenceData(name="Train",
                                   label_dir=args.train_label_dir,

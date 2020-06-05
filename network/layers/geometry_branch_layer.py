@@ -91,6 +91,6 @@ class GeometryBranch(Layer):
         localization_map = _call(self.sigmoid, q)
 
         # multiply S[B,H,W,N] * Q[B,H,W,1] => [B,H,W,N]
-        order_map = order_segment * localization_map  # TODO 这个写法我用np.array测试了一下，没问题
+        order_map = order_segment * localization_map  # multiply together
 
         return order_map, localization_map#, order_segment

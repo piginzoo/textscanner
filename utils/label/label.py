@@ -96,6 +96,9 @@ class ImageLabel:
     def bboxes(self):
         return np.array([l.bbox for l in self.labels])
 
+    @property
+    def label(self):
+        return "".join([l.label for l in self.labels])
 
 class Label:
     """

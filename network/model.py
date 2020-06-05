@@ -13,15 +13,6 @@ logger = logging.getLogger(__name__)
 HUBER_DELTA = 0.5
 
 
-def localization_map_loss():
-    def smoothL1(y_true, y_pred):
-        x = K.abs(y_true - y_pred)
-        x = K.switch(x < HUBER_DELTA, 0.5 * x ** 2, HUBER_DELTA * (x - 0.5 * HUBER_DELTA))
-        return K.sum(x)
-
-    return smoothL1
-
-
 class TextScannerModel(Model):
     """
         TextScanner Core Model
@@ -44,4 +35,19 @@ class TextScannerModel(Model):
         # order_segment
         order_map, localization_map = _call(self.geometry_branch, fcn_features)
         # word = self.word_formation(charactor_segmantation,order_map)
-        return charactor_segmantation, order_map, localization_map#, order_segment
+        return charactor_segmantation, order_map, localization_map  # , order_segment
+
+
+    def localization_map_loss(self):
+        def smoothL1(y_true, y_pred):
+            x = K.abs(y_true - y_pred)
+            x = K.switch(x < HUBER_DELTA, 0.5 * x ** 2, HUBER_DELTA * (x - 0.5 * HUBER_DELTA))
+            return K.sum(x)
+
+        return smoothL1
+
+
+    def words_accuracy(self, y_true, y_pred):
+        print("y_true:", y_true)
+        print("y_pred:", y_pred)
+        return 0

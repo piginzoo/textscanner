@@ -51,6 +51,7 @@ class LabelGenerater():
         # adjust the coordination
         shape = image_labels.image.shape[:2]  # h,w
         boxes = image_labels.bboxes  # [N,4,2] N: words number
+        label = image_labels.label
 
         # # find the one bbox boundary
         # xmins = boxes[:, :, 0].min(axis=1)
@@ -60,6 +61,7 @@ class LabelGenerater():
 
         character_segment = self.render_character_segemention(image_labels)
         localization_map = np.zeros(self.target_image_shape, dtype=np.float32)
+        order_segments = np.zeros((*self.target_image_shape, self.max_sequence), dtype=np.float32)
         order_maps = np.zeros((*self.target_image_shape, self.max_sequence), dtype=np.float32)
 
         assert boxes.shape[0] <= self.max_sequence, \
@@ -67,18 +69,24 @@ class LabelGenerater():
 
         # process each character
         for i in range(boxes.shape[0]):
-            # Y_k is the normalized_gaussian map, comply with the name in the paper
-            Y_k = self.gaussian_normalize(self.target_image_shape, boxes[i])  # xmins[i], xmaxs[i], ymins[i], ymaxs[i])
+            # Y_hat_k is the normalized_gaussian map, comply with the name in the paper
+            Y_hat_k = self.generate_Y_hat_k_by_gaussian_normalize(self.target_image_shape,
+                                                   boxes[i])  # xmins[i], xmaxs[i], ymins[i], ymaxs[i])
+            if Y_hat_k is None:
+                logger.warning("Y_%d generator failed,the char[%s] of [%s]", i, label[i], label)
+                Y_hat_k = np.zeros((self.target_image_shape))
 
-            self.render_order_map(order_maps[:, :, i], Y_k, threshold=self.ζ)
-            self.render_localization_map(localization_map, Y_k)
+            self.render_order_segment(order_segments[:, :, i], Y_hat_k, threshold=self.ζ)
+            self.render_localization_map(localization_map, Y_hat_k)
+            order_maps = order_segments * localization_map[:,:,np.newaxis]
 
         return character_segment, order_maps, localization_map
 
     # 围绕中心点做一个高斯分布，但是由于每个点的概率值过小，所以要做一个归一化,使得每个点的值归一化到[0,1]之间
     # Make a gaussian distribution with the center, and do normalization
     # def gaussian_normalize(self, shape, xmin, xmax, ymin, ymax)：
-    def gaussian_normalize(self, shape, one_word_bboxes):  # one_word_bboxes[4,2]
+    # @return a "image" with shape[H,W], which is filled by a gaussian distribution
+    def generate_Y_hat_k_by_gaussian_normalize(self, shape, one_word_bboxes):  # one_word_bboxes[4,2]
         # logger.debug("The word bbox : %r , image shape is : %r", one_word_bboxes, shape)
 
         # find the one bbox boundary
@@ -99,13 +107,18 @@ class LabelGenerater():
 
         # prepare the gaussian distribution,refer to paper <<Label Generation>>
         out[y, x] = 1.
-        out = fi.gaussian_filter(out, (self.δ, self.δ), output=out, mode='mirror')
-        out = out / out.max()
+
+        fi.gaussian_filter(out, (self.δ, self.δ), output=out, mode='mirror')
+
+        if out is None: return None
+
         return out
 
-    def render_order_map(self, order_maps, Y_k, threshold):
-        order_maps[:] = Y_k[:]
-        order_maps[Y_k < threshold] = 0
+    def render_order_segment(self, order_maps, Y_k, threshold):
+        Z_hat_k = Y_k / Y_k.max()
+        Z_hat_k[Z_hat_k < threshold] = 0
+        Z_hat_k[Z_hat_k >= threshold] = 1
+        order_maps[:] = Z_hat_k
 
     # fill the shrunk zone with the value of character ID
     def render_character_segemention(self, image_labels):
