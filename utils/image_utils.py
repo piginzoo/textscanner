@@ -52,7 +52,12 @@ def perimeter(polys):
 # 参考：https://blog.csdn.net/m_buddy/article/details/105614620
 # polys[N,2]
 def shrink_poly(polys, ratio=0.5):
-    if type(polys)==list: polys = np.array(polys)
+
+    if type(polys)==list:
+        polys = np.array(polys)
+
+    if ratio==1: return polys
+
     """
     收缩多边形
     :param polys: 多边形

@@ -34,7 +34,7 @@ class TextScannerModel(Model):
         charactor_segmantation = _call(self.class_branch, fcn_features)
         # order_segment
         order_map, localization_map = _call(self.geometry_branch, fcn_features)
-        # word = self.word_formation(charactor_segmantation,order_map)
+        word = self.word_formation(charactor_segmantation,order_map)
         return charactor_segmantation, order_map, localization_map  # , order_segment
 
 
@@ -48,6 +48,10 @@ class TextScannerModel(Model):
 
 
     def words_accuracy(self, y_true, y_pred):
-        print("y_true:", y_true)
-        print("y_pred:", y_pred)
+        print("y_true:", y_true.shape)
+        print("y_pred:", y_pred.shape)
+        for p in y_pred:
+            print("p",p.shape)
+
+        self.add_metric()
         return 0

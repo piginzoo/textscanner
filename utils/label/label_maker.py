@@ -17,7 +17,7 @@ class LabelGenerater():
     - Localization map GT : Q
     - Character Segmentation : G
     """
-    shrink = 0.6  # shrink ratio for one character wrapped polygon
+    shrink = 1  # shrink ratio for one character wrapped polygon
     ζ = 0.5  # threshold for normalization
     δ = 5  # variation for Gaussian distribution
 
@@ -71,14 +71,14 @@ class LabelGenerater():
         for i in range(boxes.shape[0]):
             # Y_hat_k is the normalized_gaussian map, comply with the name in the paper
             Y_hat_k = self.generate_Y_hat_k_by_gaussian_normalize(self.target_image_shape,
-                                                   boxes[i])  # xmins[i], xmaxs[i], ymins[i], ymaxs[i])
+                                                                  boxes[i])  # xmins[i], xmaxs[i], ymins[i], ymaxs[i])
             if Y_hat_k is None:
                 logger.warning("Y_%d generator failed,the char[%s] of [%s]", i, label[i], label)
                 Y_hat_k = np.zeros((self.target_image_shape))
 
             self.render_order_segment(order_segments[:, :, i], Y_hat_k, threshold=self.ζ)
-            self.render_localization_map(localization_map, Y_hat_k)
-            order_maps = order_segments * localization_map[:,:,np.newaxis]
+            localization_map = self.render_localization_map(localization_map, Y_hat_k)
+            order_maps = order_segments * localization_map[:, :, np.newaxis]
 
         return character_segment, order_maps, localization_map
 
@@ -110,6 +110,7 @@ class LabelGenerater():
 
         fi.gaussian_filter(out, (self.δ, self.δ), output=out, mode='mirror')
 
+        # logger.debug("Max gaussian value is :%f", out.max()) # it is 0.006367
         if out is None: return None
 
         return out
@@ -117,7 +118,7 @@ class LabelGenerater():
     def render_order_segment(self, order_maps, Y_k, threshold):
         Z_hat_k = Y_k / Y_k.max()
         Z_hat_k[Z_hat_k < threshold] = 0
-        Z_hat_k[Z_hat_k >= threshold] = 1
+        # Z_hat_k[Z_hat_k >= threshold] = 1
         order_maps[:] = Z_hat_k
 
     # fill the shrunk zone with the value of character ID
@@ -133,16 +134,16 @@ class LabelGenerater():
             shrinked_poly = image_utils.shrink_poly(one_word_label.bbox, self.shrink)
 
             word_fill = np.zeros(self.target_image_shape, np.uint32)
+
             word_fill.fill(char_id)
 
             mask = np.zeros(self.target_image_shape, np.uint8)
             cv2.fillPoly(mask, [shrinked_poly], 1)  # set those words' bbox area value to 1
-
-            character_segment += mask * word_fill
+            character_segment = np.maximum(mask * word_fill, character_segment) # merge two, only by maximum, not add
             character_segment.astype(np.int32)
 
         return character_segment
 
-    # merge all Y_k to
+    # merge all Y_k with Max value
     def render_localization_map(self, localization_map, Y_k):
-        localization_map += Y_k
+        return np.maximum(localization_map, Y_k)

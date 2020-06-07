@@ -4,6 +4,7 @@ from utils.visualise_callback import TBoardVisual
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam
 from utils.sequence import SequenceData
+from utils.val_sequence import ValidationSequenceData
 from utils import util, logger as log
 from utils.label import label_utils
 import logging
@@ -30,7 +31,7 @@ def train(args):
                                   conf=conf,
                                   args=args,
                                   batch_size=args.batch)
-    valid_sequence = SequenceData(name="Validate",
+    valid_sequence = ValidationSequenceData(name="Validate",
                                   label_dir=args.validate_label_dir,
                                   label_file=args.validate_label_file,
                                   charsets=charset,

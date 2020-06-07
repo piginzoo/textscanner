@@ -9,6 +9,7 @@ logger = logging.getLogger("Data_Util")
 
 rex = re.compile(' ')
 
+
 def caculate_edit_distance(preds, labels):
     distances = [distance(p, l) for p, l in zip(preds, labels)]
     return sum(distances) / len(distances)
@@ -37,12 +38,20 @@ def id2str(ids, characters):
     return result
 
 
-# id[1,3,56,4,35...] => xyzqf...
+# 'c' => 215
 def str2id(str_val, characters):
     if not str_val in characters:
-        logger.warning("字符{}在字典中不存在".format(str_val))
+        logger.warning("字符[{}]在字典中不存在".format(str_val))
         return 0
     return characters.index(str_val)
+
+
+# 'abc' => [213,214,215]
+def strs2id(strings, characters):
+    ids = []
+    for c in strings:
+        ids.append(str2id(c,characters))
+    return ids
 
 
 # load charset, the first one is foreground, left are characters
@@ -51,7 +60,7 @@ def get_charset(charset_file):
     charset = [ch.strip("\n") for ch in charset]
     charset = "".join(charset)
     charset = list(charset)
-    charset.insert(0,' ') # this is important to for character map
+    charset.insert(0, ' ')  # this is important to for character map
     logger.info(" Load character table, totally [%d] characters", len(charset))
     return charset
 
@@ -97,7 +106,7 @@ def load_labels(label_dir):
         image_path = None
         image_subfix = [".jpg", ".png", ".jpeg"]
         for subfix in image_subfix:
-            __image_path = os.path.join(label_dir, name+subfix)
+            __image_path = os.path.join(label_dir, name + subfix)
 
             if os.path.exists(__image_path):
                 image_path = __image_path

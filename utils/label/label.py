@@ -72,12 +72,16 @@ class ImageLabel:
         for i in range(1, len(data)):
             # "11,12,21,22,31,32,41,42,你"
             line = data[i]
+            line = line.replace(" ", "")
             line = line.replace("\n", "")
 
             line_data = line.split(",")
-
             points = line_data[:8]
             label = line_data[8]
+
+            # handle exceptional case: "11,12,21,22,31,32,41,42,,"
+            if line[-2:]==",,":
+                label = ","
 
             # "11,12,21,22,31,32,41,42" => [[11,12],[21,22],[31,32],[41,42]]
             points = [int(p.strip()) for p in points]
@@ -111,5 +115,6 @@ class Label:
         if type(bbox) == list:
             bbox = np.array(bbox)
         assert bbox.shape == (4, 2)
+        assert label is not None and label != " " and label!=""
         self.bbox = bbox
         self.label = label

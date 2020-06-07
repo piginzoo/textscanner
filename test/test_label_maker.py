@@ -3,6 +3,7 @@ from utils.label.label import ImageLabel
 from utils.label import label_utils
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
 import os, cv2
 import conf
 
@@ -21,7 +22,14 @@ shape = (conf.INPUT_IMAGE_WIDTH, conf.INPUT_IMAGE_HEIGHT)
 """
 
 
-def save_image(name, gt, image, highlight=False):
+def save_bbox_image(image_label, image_path):
+    image = image_label.image
+    bboxes = image_label.bboxes
+    cv2.polylines(image,bboxes,True,(0,0,255))
+    cv2.imwrite(image_path,image)
+
+
+def save_image(name, gt, image=None, highlight=False):
     image = cv2.resize(image, shape)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
@@ -33,8 +41,7 @@ def save_image(name, gt, image, highlight=False):
     else:
         gt = 255 * gt / (gt.max() + 0.001)
 
-
-    image = np.ubyte(0.7 * gt + 0.3 * image)
+    image = np.ubyte(0.5 * gt + 0.5 * image)
     plt.clf()
     # plt.imshow(image)
     plt.imsave(name, image)  # 必须使用plt，才可以显示彩色的
@@ -42,7 +49,15 @@ def save_image(name, gt, image, highlight=False):
     # cv2.imwrite(name,image)   # 如果使用cv2，出来的都是灰度的，不知道为何，plt对灰度的显示做了特殊的处理，使其彩色花了
 
 
-def test_make_label(image_path, json_path, name, charset):
+def test_make_label(image_path, charset):
+    dir, image_name = os.path.split(image_path)
+    name, ext = os.path.splitext(image_name)
+    if ext != ".png": return
+    json_path = os.path.join(dir, name + ".txt")
+
+    print("----------------------------------------------")
+    print("Image: ", image_name)
+
     image = cv2.imread(image_path)
 
     f = open(json_path, encoding="utf-8")
@@ -51,7 +66,7 @@ def test_make_label(image_path, json_path, name, charset):
     image_label = ImageLabel(image,
                              data,
                              format="plaintext",
-                             target_size=(256, 64))
+                             target_size=(conf.INPUT_IMAGE_WIDTH, conf.INPUT_IMAGE_HEIGHT))
 
     generator = LabelGenerater(conf.MAX_SEQUENCE,
                                target_image_shape=(conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH),
@@ -61,12 +76,13 @@ def test_make_label(image_path, json_path, name, charset):
 
     if not os.path.exists(debug_dir): os.makedirs(debug_dir)
 
-    save_image(os.path.join(debug_dir, f"character_segment_{name}.jpg"), character_segment, image, True)
-    save_image(os.path.join(debug_dir, f"localization_map_{name}.jpg"), localization_map, image)
+    save_bbox_image(image_label, os.path.join(debug_dir,f"{name}.jpg"))
+    save_image(os.path.join(debug_dir, f"{name}_character_segment.jpg"), character_segment, image, True)
+    save_image(os.path.join(debug_dir, f"{name}_localization_map.jpg"), localization_map, image)
     order_maps = order_maps.transpose(2, 0, 1)  # (H,W,S) => (S,H,W)
 
     for i, order_map in enumerate(order_maps):
-        save_image(os.path.join(debug_dir, f"order_map_{name}_{i + 1}.jpg"), order_map, image)
+        save_image(os.path.join(debug_dir, f"{name}_order_map_{i + 1}.jpg"), order_map, image)
 
     test_word_formulation(character_segment, charset, image_label, order_maps)
 
@@ -76,11 +92,12 @@ def test_make_label(image_path, json_path, name, charset):
 def test_word_formulation(character_segment_G, charset, image_label, order_maps_H):
     G = np.eye(len(charset))[character_segment_G]  # eye是对角阵生成函数，通过他，完成categorical one hot化
     H = order_maps_H
-    print("character_segment_G.shape:", character_segment_G.shape)
-    print("G.shape:", G.shape)
-    print("order_maps.shape/H:", order_maps_H.shape)
+    # print("character_segment_G.shape:", character_segment_G.shape)
+    # print("G.shape:", G.shape)
+    # print("order_maps.shape/H:", order_maps_H.shape)
 
     pred = ""
+    indices,max_sum = None, None
     for i, H_k in enumerate(H):
         # G[H,W,C:4100] * H_k[H,W,1]
         # G是每个像素字符的概率(1/4100)
@@ -90,44 +107,45 @@ def test_word_formulation(character_segment_G, charset, image_label, order_maps_
 
         _H_k = H_k[:, :, np.newaxis]  # [H,W] => [H,W,1]
         GH_k = (G * _H_k)
-        print("GH_k max value:",GH_k.max())
-
-        GH_k = np.sum(GH_k, axis=0)
-
-        sum = np.sum(GH_k, axis=0)
-
+        sum = np.sum(GH_k, axis=(0, 1))
         id = sum.argmax()
+        print("sum max value:", sum[id])
 
-        print("max id of 4100:", id, ", max value is :", sum[id])
-        if id == 0: continue
+        # print("max id of 4100:", id, ", max value is :", sum[id])
+        if id == 0:
+            indices = sum.argsort()
+            max_sum = sum[indices]
+            # print("top2 id:",indices[2:])
+            # print("top2 prob:",sum[indices])
+            break
 
         c = label_utils.id2str([int(id)], charset)
         pred += c
 
-    print("Label  :[%s]" % image_label.label)
-    print("Predict:[%s]" % pred)
+    if image_label.label != pred:
+        print("Predict:[%s]" % pred)
+        print("Label  :[%s]" % image_label.label)
+        top = 2
+        print(f"Top {top}  :", indices[-top:])
+        print(f"Prob {top} :", max_sum[-top:])
+        print("Missed :", label_utils.id2str(indices[-top:].tolist(), charset))
 
 
 if __name__ == "__main__":
-    charset = label_utils.get_charset(charset_path)
-
-    import logging
-
     logging.basicConfig(format="%(levelname)s %(message)s", level=logging.DEBUG)
+
+    charset = label_utils.get_charset(charset_path)
 
     # test  目录里的所有
     # dir = "data/train"
     # files = os.listdir(dir)
     # for f in files:
-    #     name, ext = os.path.splitext(f)
     #     image_path = os.path.join(dir,f)
-    #     if ext!= ".png": continue
-    #     label_path = os.path.join(dir,name+".txt")
-    #     print("----------------------------------------------")
-    #     print("Image: ",name)
-    #     test_make_label(image_path, label_path, name, charset)
-
+    #     test_make_label(image_path, charset)
 
     # test 单张
-    test_make_label("data/train/1-8.png", "data/train/1-8.txt", "1-8", charset)
-    # test_make_label("data/train/1-1.png", "data/train/1-1.txt", "1-1", charset)
+    test_make_label("data/train/3-5.png", charset)
+    # test_make_label("data/train/0-6.png", charset)
+    # test_make_label("data/train/0-23.png", charset)
+    # test_make_label("data/train/2-16.png", charset)
+    # test_make_label("data/train/1-22.png", charset)
