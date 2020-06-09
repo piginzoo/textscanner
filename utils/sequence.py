@@ -1,3 +1,4 @@
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 from utils.label.label_maker import LabelGenerater
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.utils import Sequence
@@ -29,9 +30,11 @@ class SequenceData(Sequence):
     def load_image_label(self, batch_data_list):
 
         images = []
-        batch_cs = []  # Character Segment
-        batch_om = []  # Order Map
-        batch_lm = []  # Localization Map
+        batch_cs = []   # Character Segment
+        batch_os = []   # Order Segment
+        # batch_om = [] # Order Map
+        batch_lm = []   # Localization Map
+        label_text = [] # label text
         for image_path, label_path in batch_data_list:
 
             if not os.path.exists(image_path):
@@ -48,17 +51,29 @@ class SequenceData(Sequence):
 
             images.append(il.image)
 
-            character_segment, order_maps, localization_map = self.label_generator.process(il)
+            # text label
+            label = il.label
+            label_ids = label_utils.strs2id(label, self.charsets)
+            label_text.append(label_ids)
+
+            # character_segment, order_maps, localization_map = self.label_generator.process(il)
+            character_segment, order_sgementation, localization_map = self.label_generator.process(il)
             character_segment = to_categorical(character_segment, num_classes=len(self.charsets) + 1)
 
             batch_cs.append(character_segment)
-            batch_om.append(order_maps)
+            # batch_om.append(order_maps)
+            batch_os.append(order_sgementation)
             batch_lm.append(localization_map)
 
         images = np.array(images, np.float32)
         batch_cs = np.array(batch_cs)
-        batch_om = np.array(batch_om)
+        # batch_om = np.array(batch_om)
+        batch_os = np.array(batch_os)
         batch_lm = np.array(batch_lm)
+
+        # text one hot array
+        labels = pad_sequences(label_text, maxlen=self.conf.MAX_SEQUENCE, padding="post", value=0)
+        labels = to_categorical(labels, num_classes=len(self.charsets))
 
         # logger.debug("Loaded images:  %r", images.shape)
         # logger.debug("Loaded batch_cs:%r", batch_cs.shape)
@@ -66,12 +81,7 @@ class SequenceData(Sequence):
         # logger.debug("Loaded batch_lm:%r", batch_lm.shape)
         # logger.debug("[%s] loaded %d data", self.name, len(images))
 
-        return images, [batch_cs, batch_om, batch_lm]
-        # {
-        #     'charactor_segmantation':np.array(batch_cs),
-        #     'order_map':np.array(batch_om),
-        #     'localization_map':np.array(batch_lm)
-        # }
+        return images, [batch_cs, batch_os, batch_lm,labels]
 
     def __getitem__(self, idx):
         batch_data_list = self.data_list[idx * self.batch_size: (idx + 1) * self.batch_size]

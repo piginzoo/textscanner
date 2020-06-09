@@ -48,7 +48,8 @@ class GeometryBranch(Layer):
                                                 name="dconv_order_seg3", padding="same")  # 1
         self.dconv_order_seg2 = Conv2DTranspose(filters=self.filter_num, kernel_size=(3, 3), strides=2,
                                                 name="dconv_order_seg2", padding="same")  # 1/2
-        self.dconv_order_seg1 = Conv2DTranspose(filters=self.sequence_length, kernel_size=(3, 3), strides=2, name="dconv_order_seg1",
+        self.dconv_order_seg1 = Conv2DTranspose(filters=self.sequence_length, kernel_size=(3, 3), strides=2,
+                                                name="dconv_order_seg1",
                                                 padding="same")  # 1/4
         self.softmax = Softmax(name="softmax")
 
@@ -59,7 +60,6 @@ class GeometryBranch(Layer):
         self.conv_loc_map2 = Convolution2D(filters=1, kernel_size=(1, 1), padding="same",
                                            name="conv_loc_map2")
         self.sigmoid = Activation("sigmoid", name="sigmoid")
-
 
     def call(self, inputs, training=None):
         # convs
@@ -93,4 +93,4 @@ class GeometryBranch(Layer):
         # multiply S[B,H,W,N] * Q[B,H,W,1] => [B,H,W,N]
         order_map = order_segment * localization_map  # multiply together
 
-        return order_map, localization_map#, order_segment
+        return order_map, localization_map, order_segment
