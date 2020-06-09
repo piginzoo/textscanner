@@ -32,6 +32,7 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     # 训练：10张训练，但是steps_per_epoch=2，batch=3，预想6张后，就会重新shuffle
     # 验证：使用sequence是不需要要validation_steps参数的，他会自己算，len(data)/batch
     #      如果你规定，那就得比它小才可以，另外还要验证，是不是把每个批次的结果做平均，还是算整体的
+    export CUDA_VISIBLE_DEVICES=3
     python -m main.train \
     --name=textscanner \
     --epochs=1 \
