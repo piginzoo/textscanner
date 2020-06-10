@@ -22,7 +22,7 @@ class TBoardVisual(Callback):
         self.args = args
         self.tboard_dir = tboard_dir
         self.charset = charset
-        self.font = ImageFont.truetype("data/font/simsun.ttc", 10)  # 设置字体
+        self.font = ImageFont.truetype("data/fonts/simsun.ttc", 10)  # 设置字体
         self.validate_sequence = validate_sequence
 
     def on_batch_end(self, batch, logs=None):
