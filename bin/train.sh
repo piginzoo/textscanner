@@ -41,6 +41,8 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     --batch=3 \
     --retrain=True \
     --learning_rate=0.001 \
+    --train_label_dir=data/test \
+    --validate_label_dir=data/test \
     --validation_batch=1 \
     --validation_steps=1 \
     --preprocess_num=1 \
