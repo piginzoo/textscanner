@@ -11,6 +11,6 @@ docker run --rm -it \
     --runtime=nvidia  \
     --mount type=bind,source=$PWD,target=/root/textscanner \
     --name textscanner \
-    --workdir /root/textscanner
+    --workdir /root/textscanner \
     textscanner.img \
     bin/train.sh $2

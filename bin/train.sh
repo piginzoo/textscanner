@@ -1,3 +1,4 @@
+#!/bin/bash
 # 参数说明：
 # python -m main.train \
 #    --name=attention_ocr \
