@@ -1,7 +1,7 @@
 if [ "$1" == "" ]; then
     echo "Usage: bin/docker.train #GPU <console>"
     exit
-if
+fi
 
 PWD=`pwd`
 echo $PWD
