@@ -1,0 +1,16 @@
+if [ "$1" == "" ]; then
+    echo "Usage: bin/docker.train #GPU <console>"
+    exit
+if
+
+PWD=`pwd`
+echo $PWD
+docker run --rm -it \
+    -e NVIDIA_VISIBLE_DEVICES=$1 \
+    -t --rm  \
+    --runtime=nvidia  \
+    --mount type=bind,source=$PWD,target=/root/textscanner \
+    --name textscanner \
+    --workdir /root/textscanner
+    textscanner.img \
+    bin/train.sh $2

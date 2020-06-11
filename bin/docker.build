@@ -1,0 +1,1 @@
+docker build -f ../config/Dockerfile -t textscanner.img
