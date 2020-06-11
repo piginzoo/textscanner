@@ -15,5 +15,3 @@ deb http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted
 deb-src http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted multiverse universe #Added by software-properties
 deb http://mirrors.aliyun.com/ubuntu/ xenial-security universe
 deb http://mirrors.aliyun.com/ubuntu/ xenial-security multiverse
-deb http://archive.ubuntu.com/ubuntu/ trusty main universe restricted multiverse
-deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
