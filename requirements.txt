@@ -1,4 +1,3 @@
-tensorflow-gpu==2.1.0
 python-levenshtein
 opencv-python
 matplotlib
