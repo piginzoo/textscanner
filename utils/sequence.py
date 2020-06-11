@@ -48,6 +48,7 @@ class SequenceData(Sequence):
             target_size = (self.target_image_shape[1], self.target_image_shape[0])
             il = ImageLabel(cv2.imread(image_path), data, self.conf.LABLE_FORMAT,
                             target_size=target_size)  # inside it, the bboxes size will be adjust
+            logger.debug("Loaded label generates training labels")
 
             images.append(il.image)
 
