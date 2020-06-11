@@ -1,0 +1,10 @@
+PWD=`pwd`
+echo $PWD
+docker run --rm -it \
+         -e NVIDIA_VISIBLE_DEVICES=0 \
+         -t --rm  \
+         --runtime=nvidia  \
+         --mount type=bind,source=$PWD,target=/root/textscanner \
+   	 --network host \
+	 --name textscanner \
+	 tensorflow/tensorflow:2.1.0-gpu-py3

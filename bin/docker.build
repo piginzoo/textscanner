@@ -1,1 +1,1 @@
-docker build -f ../config/Dockerfile -t textscanner.img
+docker build -f config/Dockerfile -t textscanner.img .
