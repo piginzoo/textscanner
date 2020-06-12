@@ -8,15 +8,11 @@ from utils.label import label_utils
 import logging
 import conf
 import os
-import tensorflow as tf
-
 
 logger = logging.getLogger(__name__)
 
 
 def train(args):
-    tf.enable_eager_execution()
-
     charset = label_utils.get_charset(conf.CHARSET)
     conf.CHARSET_SIZE = len(charset)
 
