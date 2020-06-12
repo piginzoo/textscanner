@@ -1,6 +1,7 @@
 if [ "$1" == "proxy" ]; then
     echo "Run training with proxy"
     docker build \
+        --network host \
         --build-arg HTTP_PROXY="http://172.17.0.1:8123" \
         --build-arg HTTPS_PROXY="http://172.17.0.1:8123" \
         -f config/Dockerfile -t textscanner.img .
