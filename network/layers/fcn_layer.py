@@ -1,4 +1,4 @@
-from tensorflow.keras.layers import *
+from tensorflow.keras.layers import Conv2D, Dropout, Conv2DTranspose, Add, Cropping2D, Layer
 from tensorflow.keras.models import Model
 from utils.util import call_debug as _call
 
