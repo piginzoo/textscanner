@@ -26,7 +26,7 @@ def _p(tensor, msg):
 def init(level=logging.DEBUG, when="D", backup=7,
          _format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d %(message)s"):
     train_start_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-    filename = 'logs/ocr-attention-' + train_start_time + '.log'
+    filename = 'logs/textscanner-' + train_start_time + '.log'
     _dir = os.path.dirname(filename)
     if not os.path.isdir(_dir): os.makedirs(_dir)
 
