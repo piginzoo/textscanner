@@ -10,6 +10,7 @@ docker run --rm -it \
     -t --rm  \
     --runtime=nvidia  \
     --mount type=bind,source=$PWD,target=/root/textscanner \
+    --mount type=bind,source=/root/.keras,target=/root/.keras \
     --name textscanner \
     --workdir /root/textscanner \
     textscanner.img \
