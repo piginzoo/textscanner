@@ -1,10 +1,13 @@
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.models import load_model
 from network.model import TextScannerModel
 from utils.visualise_callback import TBoardVisual
-from tensorflow.keras.models import load_model
 from utils.sequence import SequenceData
-from utils import util, logger as log
 from utils.label import label_utils
+from utils import logger as log
+from utils import util
 import logging
 import conf
 import os
@@ -68,8 +71,6 @@ def train(args):
         validation_data=valid_sequence,
         validation_steps=args.validation_steps,
         verbose=2)
-
-    model.summary()
 
     logger.info("Train end!")
 

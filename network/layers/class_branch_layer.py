@@ -17,10 +17,14 @@ class ClassBranchLayer(Layer):
         self.filter_num = filter_num
 
     def build(self, input_shape):
-        self.conv1 = Convolution2D(filters=self.filter_num, kernel_size=(3, 3), padding="same",
+        self.conv1 = Convolution2D(filters=self.filter_num,
+                                   kernel_size=(3, 3),
+                                   padding="same",
                                    name="class_branch_conv1")
         # the classification number is Character Size + 1
-        self.conv2 = Convolution2D(filters=self.charset_size + 1, kernel_size=(1, 1), padding="same",
+        self.conv2 = Convolution2D(filters=self.charset_size + 1,
+                                   kernel_size=(1, 1),
+                                   padding="same",
                                    name="class_branch_conv2")
         self.softmax = Softmax(name="class_branch_softmax")
 
