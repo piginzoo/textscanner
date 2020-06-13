@@ -1,13 +1,14 @@
 from network.layers.class_branch_layer import ClassBranchLayer
 from network.layers.geometry_branch_layer import GeometryBranch
 from network.layers.word_formation_layer import WordFormation
-from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.applications.resnet import ResNet50
 from network.layers.fcn_layer import FCNLayer
 from tensorflow.keras.optimizers import Adam
 from utils.util import call_debug as _call
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
+import tensorflow as tf
 import logging
 
 logger = logging.getLogger(__name__)
@@ -65,4 +66,8 @@ class TextScannerModel(Model):
                      loss_weights=loss_weights,
                      metrics=metrics,
                      run_eagerly=True)
+        logger.info("######## TextScanner Model Structure ########")
+        self.build(self.input_image.shape)
+        self.summary()
+        exit()
         logger.info("TextScanner Model was compiled.")
