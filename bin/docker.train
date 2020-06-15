@@ -3,15 +3,30 @@ if [ "$1" == "" ]; then
     exit
 fi
 
-if [ "$1" == "" ]; then
+if [ "$1" == "stop" ]; then
     echo "Try to shutdown training docker container ..."
     docker ps|grep textscanner|awk '{print $1}'|xargs docker stop
     exit
 fi
 
-
 PWD=`pwd`
-echo $PWD
+
+if [ "$1" == "debug" ]; then
+    echo "Run container to terminal ..."
+    docker run --rm -it \
+    -e NVIDIA_VISIBLE_DEVICES=$1 \
+    -t --rm  \
+    --runtime=nvidia  \
+    --mount type=bind,source=$PWD,target=/root/textscanner \
+    --mount type=bind,source=/root/.keras,target=/root/.keras \
+    --mount type=bind,source=/app/data/textscanner/20200602_syntext/,target=/root/textscanner/data \
+    --name textscanner \
+    --workdir /root/textscanner \
+    textscanner.img
+    exit
+fi
+
+echo "Run docker train ..."
 docker run --rm -it \
     -e NVIDIA_VISIBLE_DEVICES=$1 \
     -t --rm  \
