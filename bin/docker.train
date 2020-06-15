@@ -3,6 +3,13 @@ if [ "$1" == "" ]; then
     exit
 fi
 
+if [ "$1" == "" ]; then
+    echo "Try to shutdown training docker container ..."
+    docker ps|grep textscanner|awk '{print $1}'|xargs docker stop
+    exit
+fi
+
+
 PWD=`pwd`
 echo $PWD
 docker run --rm -it \
