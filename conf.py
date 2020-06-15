@@ -50,9 +50,9 @@ def init_args():
 
     sys.modules[__name__].DEBUG = args.debug_mode
 
-    if args.debug_mode:
-        print("Running in DEBUG mode!")
-        sys.modules[__name__].FILTER_NUM = 1
+    # if args.debug_mode:
+    #     print("Running in DEBUG mode!")
+    #     sys.modules[__name__].FILTER_NUM = 1
 
     return args
 
