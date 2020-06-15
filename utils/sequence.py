@@ -82,7 +82,7 @@ class SequenceData(Sequence):
         # logger.debug("Loaded batch_lm:%r", batch_lm.shape)
         # logger.debug("[%s] loaded %d data", self.name, len(images))
 
-        return images, [batch_cs, batch_os, batch_lm,labels]
+        return images, [batch_cs, batch_os, batch_lm]#,labels]
 
     def __getitem__(self, idx):
         batch_data_list = self.data_list[idx * self.batch_size: (idx + 1) * self.batch_size]
