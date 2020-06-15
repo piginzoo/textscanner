@@ -36,8 +36,8 @@ class TextScannerModel(Model):
         fcn_features = _call(self.fcn, inputs)
         character_segmentation = _call(self.class_branch, fcn_features)
         order_map, localization_map, order_segment = _call(self.geometry_branch, fcn_features)
-        words = _call(self.word_formation, character_segmentation, order_map)
-        return character_segmentation, order_segment, localization_map, words  # the sequence of them is critical for loss & metrics
+        # words = _call(self.word_formation, character_segmentation, order_map)
+        return character_segmentation, order_segment, localization_map, #words  # the sequence of them is critical for loss & metrics
 
     def localization_map_loss(self):
         def smoothL1(y_true, y_pred):
@@ -52,15 +52,15 @@ class TextScannerModel(Model):
         # the last "words" corresponding loss function is useless, will be masked by its weight, keep it only for metrics
         losses = ['categorical_crossentropy',
                   'categorical_crossentropy',
-                  self.localization_map_loss(),
-                  'categorical_crossentropy']
-        loss_weights = [1, 10, 10, 0]  # weight value refer from paper, and last 0 is mask to eliminate the words loss
+                  self.localization_map_loss()]
+                  # 'categorical_crossentropy']
+        loss_weights = [1, 10, 10]#, 0]  # weight value refer from paper, and last 0 is mask to eliminate the words loss
 
         # metrics
         metrics = ['categorical_accuracy',
                    'categorical_accuracy',
-                   'binary_accuracy',
-                   'categorical_accuracy']
+                   'binary_accuracy']
+                   # 'categorical_accuracy']
 
         self.compile(Adam(),
                      loss=losses,
@@ -70,5 +70,4 @@ class TextScannerModel(Model):
         logger.info("######## TextScanner Model Structure ########")
         self.build(self.input_image.shape)
         self.summary()
-        exit()
         logger.info("TextScanner Model was compiled.")
