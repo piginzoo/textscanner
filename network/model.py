@@ -29,7 +29,8 @@ class TextScannerModel(Model):
         self.geometry_branch = GeometryBranch(name="GeometryBranchLayer", conf=conf)
         self.word_formation = WordFormation(name="WordFormationLayer")
         self.resnet50_model = ResNet50(include_top=False, weights='imagenet') # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
-        self.fcn = FCNLayer(name="FCNLayer", resnet50_model=self.resnet50_model)
+        self.resnet50_model.summary()
+        self.fcn = FCNLayer(name="FCNLayer", filter_num=conf.FILTER_NUM, resnet50_model=self.resnet50_model)
 
     def call(self, inputs, training=None):
         fcn_features = _call(self.fcn, inputs)

@@ -11,13 +11,14 @@ class FCNLayer(Layer):
     This implements FCN-8s
     """
 
-    def __init__(self, name, resnet50_model):
+    def __init__(self, name, filter_num, resnet50_model):
         super().__init__(name=name)
         resnet50_model.layers.pop()
         # resnet50_model.summary()
         self.resnet50_model = resnet50_model
+        self.filter_num = filter_num
 
-    def build(self, input_image, FILTER_NUM=4):
+    def build(self, input_image):
 
         ############################
         # encoder part
@@ -36,47 +37,47 @@ class FCNLayer(Layer):
         ############################
 
         # pool5(1/32) ==> 1/16
-        self.pool5_conv1 = Conv2D(filters=FILTER_NUM,
+        self.pool5_conv1 = Conv2D(filters=self.filter_num,
                                   kernel_size=(2, 2),
                                   activation='relu',
                                   padding='same',
                                   name="fcn_pool5_conv1")  # 2x2 is because the least height is 2 pixes after Resnet
         self.pool5_drop1 = Dropout(0.25, name="fcn_pool5_drop1")
-        self.pool5_conv2 = Conv2D(filters=FILTER_NUM,
+        self.pool5_conv2 = Conv2D(filters=self.filter_num,
                                   kernel_size=(1, 1),
                                   activation='relu',
                                   padding='same',
                                   name="fcn_pool5_conv2")
         self.pool5_drop2 = Dropout(0.25, name="fcn_pool5_drop2")
-        self.pool5_conv3 = Conv2D(filters=FILTER_NUM,
+        self.pool5_conv3 = Conv2D(filters=self.filter_num,
                                   kernel_size=(1, 1),
                                   kernel_initializer='he_normal',
                                   name="fcn_pool5_conv3")
-        self.pool5_dconv1 = Conv2DTranspose(filters=FILTER_NUM,
+        self.pool5_dconv1 = Conv2DTranspose(filters=self.filter_num,
                                             kernel_size=(3, 3),
                                             strides=(2, 2),
                                             use_bias=False,
                                             name="fcn_pool5_dconv1")  # stride=2后，反卷积图从2x8=>5x17（像素间padding0），采用3x3核做上卷积
 
         # pool4(1/16)+dconv ==> 1/8
-        self.pool4_conv1 = Conv2D(filters=FILTER_NUM,
+        self.pool4_conv1 = Conv2D(filters=self.filter_num,
                                   kernel_size=(1, 1),
                                   kernel_initializer='he_normal',
                                   name="fcn_pool4_conv1")  # pool4做1x1卷积后 + 反卷积后的pool5，恢复到原图1/16
         self.pool4_add1 = Add(name="fcn_pool4_add1")
-        self.pool4_dconv1 = Conv2DTranspose(filters=FILTER_NUM,
+        self.pool4_dconv1 = Conv2DTranspose(filters=self.filter_num,
                                             kernel_size=(3, 3),
                                             strides=(2, 2),
                                             use_bias=False,
                                             name="fcn_pool4_dconv1")  # （pool4 + 上采样后的pool5）的结果 再次做反卷积，尺寸恢复到原图的1/8
 
         # pool3(1/8)+dconv ==> original size
-        self.pool3_conv1 = Conv2D(filters=FILTER_NUM,
+        self.pool3_conv1 = Conv2D(filters=self.filter_num,
                                   kernel_size=(1, 1),
                                   kernel_initializer='he_normal',
                                   name="fcn_pool3_conv1")  # pool3做1x1卷积后与上面的结果融合
         self.pool3_add1 = Add(name="fcn_pool3_add1")
-        self.pool3_dconv1 = Conv2DTranspose(filters=FILTER_NUM,
+        self.pool3_dconv1 = Conv2DTranspose(filters=self.filter_num,
                                             kernel_size=(3, 3),
                                             strides=(8, 8),
                                             use_bias=False,
