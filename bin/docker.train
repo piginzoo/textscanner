@@ -11,7 +11,7 @@ fi
 
 PWD=`pwd`
 
-if [ "$1" == "debug" ]; then
+if [ "$2" == "term" ]; then
     echo "Run container to terminal ..."
     docker run --rm -it \
     -e NVIDIA_VISIBLE_DEVICES=$1 \
