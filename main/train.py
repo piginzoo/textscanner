@@ -7,6 +7,7 @@ from utils.visualise_callback import TBoardVisual
 from utils.sequence import SequenceData
 from utils.label import label_utils
 from utils import logger as log
+import tensorflow as tf
 from utils import util
 import logging
 import conf
@@ -61,20 +62,22 @@ def train(args):
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
-    model.fit(
-        x=train_sequence,
-        steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
-        epochs=args.epochs,
-        workers=args.workers,  # 同时启动多少个进程加载
-        callbacks=[tboard, checkpoint, early_stop],#, visibility_debug],
-        use_multiprocessing=True,
-        validation_data=valid_sequence,
-        validation_steps=args.validation_steps,
-        verbose=2)
+    with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
+        model.fit(
+            x=train_sequence,
+            steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
+            epochs=args.epochs,
+            workers=args.workers,  # 同时启动多少个进程加载
+            callbacks=[tboard, checkpoint, early_stop],#, visibility_debug],
+            use_multiprocessing=True,
+            validation_data=valid_sequence,
+            validation_steps=args.validation_steps,
+            verbose=2)
 
     logger.info("Train end!")
 
     model_path = conf.DIR_MODEL + "/textscanner-{}.hdf5".format(util.timestamp_s())
+    # model.save(model_path)
     model.save_weights(model_path)
     logger.info("Save model saved to ：%s", model_path)
 
