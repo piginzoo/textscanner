@@ -1,9 +1,11 @@
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.models import load_model
-from network.model import TextScannerModel
 from utils.visualise_callback import TBoardVisual
+from tensorflow.keras.models import load_model
+from tensorflow.python.client import timeline
+from network.model import TextScannerModel
+from tensorflow.keras import backend as K
 from utils.sequence import SequenceData
 from utils.label import label_utils
 from utils import logger as log
@@ -21,7 +23,6 @@ def train(args):
     conf.CHARSET_SIZE = len(charset)
 
     model = TextScannerModel(conf, charset)
-    model.comile_model()
 
     train_sequence = SequenceData(name="Train",
                                   label_dir=args.train_label_dir,
@@ -62,7 +63,13 @@ def train(args):
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
-    with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
+    # with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
+    with K.get_session()  as s:
+
+        run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        run_metadata = tf.RunMetadata()
+        model.comile_model(run_options, run_metadata)
+
         model.fit(
             x=train_sequence,
             steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
@@ -73,6 +80,11 @@ def train(args):
             validation_data=valid_sequence,
             validation_steps=args.validation_steps,
             verbose=2)
+
+        to = timeline.Timeline(run_metadata.step_stats)
+        trace = to.generate_chrome_trace_format()
+        with open('logs/full_trace.json', 'w') as out:
+            out.write(trace)
 
     logger.info("Train end!")
 

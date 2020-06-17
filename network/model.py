@@ -47,7 +47,7 @@ class TextScannerModel(Model):
 
         return smoothL1
 
-    def comile_model(self):
+    def comile_model(self, run_options, run_metadata):
         # model predict output are: character_segmentation(G), order_segment(S), localization_map(Q), words
         # the last "words" corresponding loss function is useless, will be masked by its weight, keep it only for metrics
         losses = ['categorical_crossentropy',
@@ -66,6 +66,8 @@ class TextScannerModel(Model):
                      loss=losses,
                      loss_weights=loss_weights,
                      metrics=metrics,
+                     options = run_options,
+                     run_metadata = run_metadata,
                      run_eagerly=True)
         logger.info("######## TextScanner Model Structure ########")
         self.build(self.input_image.shape)
