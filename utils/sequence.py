@@ -59,7 +59,7 @@ class SequenceData(Sequence):
 
             # character_segment, order_maps, localization_map = self.label_generator.process(il)
             character_segment, order_sgementation, localization_map = self.label_generator.process(il)
-            character_segment = to_categorical(character_segment, num_classes=len(self.charsets) + 1)
+            character_segment = to_categorical(character_segment, num_classes=len(self.charsets) + 1) #<--- size becoming big!!!
 
             batch_cs.append(character_segment)
             # batch_om.append(order_maps)
@@ -73,8 +73,8 @@ class SequenceData(Sequence):
         batch_lm = np.array(batch_lm)
 
         # text one hot array
-        labels = pad_sequences(label_text, maxlen=self.conf.MAX_SEQUENCE, padding="post", value=0)
-        labels = to_categorical(labels, num_classes=len(self.charsets))
+        # labels = pad_sequences(label_text, maxlen=self.conf.MAX_SEQUENCE, padding="post", value=0)
+        # labels = to_categorical(labels, num_classes=len(self.charsets))
 
         # logger.debug("Loaded images:  %r", images.shape)
         # logger.debug("Loaded batch_cs:%r", batch_cs.shape)

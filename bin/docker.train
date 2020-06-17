@@ -24,7 +24,7 @@ if [ "$2" == "term" ]; then
     --mount type=bind,source=$PWD,target=/root/textscanner \
     --mount type=bind,source=/root/.keras,target=/root/.keras \
     --mount type=bind,source=/app/data/textscanner/20200602_syntext/,target=/root/textscanner/data \
-    --name textscanner \
+    --name textscanner_term \
     --workdir /root/textscanner \
     textscanner.img
     exit
