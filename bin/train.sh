@@ -36,20 +36,20 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     export CUDA_VISIBLE_DEVICES=0 # 调试不用GPU
     python -m main.train \
     --name=textscanner \
-    --epochs=1 \
+    --epochs=1000 \
     --debug_mode \
-    --debug_step=1 \
-    --steps_per_epoch=1 \
-    --batch=3 \
+    --debug_step=10 \
+    --steps_per_epoch=1000 \
+    --batch=8 \
     --retrain=True \
     --learning_rate=0.001 \
-    --train_label_dir=data/test \
-    --validate_label_dir=data/test \
-    --validation_batch=1 \
-    --validation_steps=1 \
-    --preprocess_num=1 \
-    --workers=3 \
-    --early_stop=1
+    --train_label_dir=data/train \
+    --validate_label_dir=data/validate \
+    --validation_batch=100 \
+    --validation_steps=10 \
+    --preprocess_num=10 \
+    --workers=10 \
+    --early_stop=10
 
     if [ "$1" == "debug" ]; then
         # 恢复源文件，防止git提交

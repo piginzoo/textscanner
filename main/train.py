@@ -75,7 +75,7 @@ def train(args):
             steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
             epochs=args.epochs,
             workers=args.workers,  # 同时启动多少个进程加载
-            callbacks=[tboard, checkpoint, early_stop, visibility_debug],
+            callbacks=[tboard, checkpoint, early_stop],  # , visibility_debug],
             use_multiprocessing=True,
             validation_data=valid_sequence,
             validation_steps=args.validation_steps,
