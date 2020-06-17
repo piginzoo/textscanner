@@ -62,8 +62,8 @@ def train(args):
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
-    with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
-        model.fit(
+    #with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
+    model.fit(
             x=train_sequence,
             steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
             epochs=args.epochs,
