@@ -100,7 +100,7 @@ class LabelGenerater():
         # find the "Center" of polygon
         y = (ymax + ymin + 1) // 2
         x = (xmax + xmin + 1) // 2
-        if x > w or y > h:
+        if x >= w or y >= h:
             logger.warning("标注超出图像范围，生成高斯样本失败：(xmin:%f, xmax:%f, ymin:%f, ymax:%f,w:%f,x:%f,h:%f,y:%f)", xmin, xmax,
                            ymin, ymax, w, x, h, y)
             return None
