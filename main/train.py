@@ -64,27 +64,27 @@ def train(args):
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
     # with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
-    with K.get_session()  as s:
+    # with K.get_session()  as s:
 
-        run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-        run_metadata = tf.RunMetadata()
-        model.comile_model(run_options, run_metadata)
+    run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+    run_metadata = tf.RunMetadata()
+    model.comile_model(run_options, run_metadata)
 
-        model.fit(
-            x=train_sequence,
-            steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
-            epochs=args.epochs,
-            workers=args.workers,  # 同时启动多少个进程加载
-            callbacks=[tboard, checkpoint, early_stop],  # , visibility_debug],
-            use_multiprocessing=True,
-            validation_data=valid_sequence,
-            validation_steps=args.validation_steps,
-            verbose=2)
+    model.fit(
+        x=train_sequence,
+        steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
+        epochs=args.epochs,
+        workers=args.workers,  # 同时启动多少个进程加载
+        callbacks=[tboard, checkpoint, early_stop],  # , visibility_debug],
+        use_multiprocessing=True,
+        validation_data=valid_sequence,
+        validation_steps=args.validation_steps,
+        verbose=2)
 
-        to = timeline.Timeline(run_metadata.step_stats)
-        trace = to.generate_chrome_trace_format()
-        with open('logs/full_trace.json', 'w') as out:
-            out.write(trace)
+    to = timeline.Timeline(run_metadata.step_stats)
+    trace = to.generate_chrome_trace_format()
+    with open('logs/full_trace.json', 'w') as out:
+        out.write(trace)
 
     logger.info("Train end!")
 
