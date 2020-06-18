@@ -72,7 +72,7 @@ def train(args):
     # with open('logs/full_trace.json', 'w') as out:
     #     out.write(trace)
 
-    model.comile_model(run_options, run_metadata)
+    model.comile_model()
 
     model.fit(
         x=train_sequence,
