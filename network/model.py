@@ -71,6 +71,6 @@ class TextScannerModel(Model):
                      metrics=metrics,
                      run_eagerly=True)
         logger.info("######## TextScanner Model Structure ########")
-        self.build(self.input_image.shape)
+        self.build(self.input_image.shape) # no build, no summary
         self.summary()
         logger.info("TextScanner Model was compiled.")

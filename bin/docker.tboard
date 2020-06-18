@@ -1,0 +1,23 @@
+if [ "$1" == "" ]; then
+    echo "Usage: bin/docker.tboard <port>"
+    exit
+fi
+
+if [ "$1" == "stop" ]; then
+    echo "Try to shutdown tensorboard docker container ..."
+    docker ps|grep textscanner_tboard|awk '{print $1}'|xargs docker stop
+    exit
+fi
+
+PWD=`pwd`
+
+echo "Run docker tensorboard ..."
+docker run --rm -it \
+    -t --rm  \
+    --mount type=bind,source=$PWD,target=/root/textscanner \
+    --mount type=bind,source=/root/.keras,target=/root/.keras \
+    --mount type=bind,source=/app/data/textscanner/20200602_syntext/,target=/root/textscanner/data \
+    --name textscanner_tboard \
+    --workdir /root/textscanner \
+    textscanner.img \
+    tensorboard --host 0.0.0.0 --port $1 --logdir ./logs/tboard
