@@ -65,9 +65,13 @@ def train(args):
 
     # with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
     # with K.get_session()  as s:
+    # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+    # run_metadata = tf.RunMetadata()
+    # to = timeline.Timeline(run_metadata.step_stats)
+    # trace = to.generate_chrome_trace_format()
+    # with open('logs/full_trace.json', 'w') as out:
+    #     out.write(trace)
 
-    run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-    run_metadata = tf.RunMetadata()
     model.comile_model(run_options, run_metadata)
 
     model.fit(
@@ -81,10 +85,6 @@ def train(args):
         validation_steps=args.validation_steps,
         verbose=2)
 
-    to = timeline.Timeline(run_metadata.step_stats)
-    trace = to.generate_chrome_trace_format()
-    with open('logs/full_trace.json', 'w') as out:
-        out.write(trace)
 
     logger.info("Train end!")
 

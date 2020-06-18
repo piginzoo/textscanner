@@ -62,12 +62,13 @@ class TextScannerModel(Model):
                    'binary_accuracy']
                    # 'categorical_accuracy']
 
+        # options = run_options,
+        # run_metadata = run_metadata,
+
         self.compile(Adam(),
                      loss=losses,
                      loss_weights=loss_weights,
                      metrics=metrics,
-                     options = run_options,
-                     run_metadata = run_metadata,
                      run_eagerly=True)
         logger.info("######## TextScanner Model Structure ########")
         self.build(self.input_image.shape)
