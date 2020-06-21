@@ -58,12 +58,9 @@ class TextScannerModel(Model):
 
         # metrics
         metrics = ['categorical_accuracy',
-                   'accuracy',
+                   'categorical_accuracy',
                    'binary_accuracy']
                    # 'categorical_accuracy']
-
-        # options = run_options,
-        # run_metadata = run_metadata,
 
         self.compile(Adam(),
                      loss=losses,

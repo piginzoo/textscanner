@@ -5,6 +5,7 @@ from utils.label import label_utils
 import numpy as np
 import cv2, os
 import logging
+import conf
 
 logger = logging.getLogger(__name__)
 
@@ -64,11 +65,11 @@ class ImageLabelLoader:
         label_file = open(label_path, encoding="utf-8")
         data = label_file.readlines()
         label_file.close()
-        logger.debug("Loaded label file [%s] %d lines", label_path, len(data))
+        if conf.DEBUG: logger.debug("Loaded label file [%s] %d lines", label_path, len(data))
         target_size = (self.target_image_shape[1], self.target_image_shape[0])
         # inside it, the bboxes size will be adjust
         il = ImageLabel(cv2.imread(image_path), data, self.label_format, target_size=target_size)
-        logger.debug("Loaded label generates training labels")
+        if conf.DEBUG: logger.debug("Loaded label generates training labels")
 
         # text label
         label = il.label

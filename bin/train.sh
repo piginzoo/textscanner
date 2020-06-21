@@ -40,7 +40,7 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     --debug_mode \
     --debug_step=10 \
     --steps_per_epoch=1000 \
-    --batch=2 \
+    --batch=5 \
     --retrain=True \
     --learning_rate=0.001 \
     --train_label_dir=data/train \
