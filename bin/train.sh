@@ -1,8 +1,8 @@
 #!/bin/bash
 # 参数说明：
 # python -m main.train \
-	#    --name=attention_ocr \
-	#    --epochs=200 \                 # 200个epochs，但是不一定能跑完，因为由ealy stop
+#    --name=attention_ocr \
+#    --epochs=200 \                 # 200个epochs，但是不一定能跑完，因为由ealy stop
 #    --steps_per_epoch=1000 \       # 每个epoch对应的批次数，其实应该是总样本数/批次数，但是我们的样本上百万，太慢，所以，我们只去1000个批次
 #                                   # 作为一个epoch，为何要这样呢？因为只有每个epoch结束，keras才回调，包括validate、ealystop等
 #    --batch=64 \
@@ -25,6 +25,11 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     if [ "$1" == "debug" ]; then
         echo "_/_/_/_/_/_/  Start PDB Debugging...  _/_/_/_/_/_/"
         sed -i '1i\import pdb; pdb.set_trace()\n' main/train.py
+    fi
+
+    if [ "$2" != "" ]; then
+        echo "User define GPU #$2"
+        export CUDA_VISIBLE_DEVICES=$2
     fi
 
     echo "In DEBUG mode ..."
@@ -63,6 +68,10 @@ if [ "$1" = "stop" ]; then
     exit
 fi
 
+if [ "$1" != "" ]; then
+    echo "User define GPU #$1"
+    export CUDA_VISIBLE_DEVICES=$1
+fi
 
 echo "Production Mode ..."
 echo "Using #$CUDA_VISIBLE_DEVICES GPU"
