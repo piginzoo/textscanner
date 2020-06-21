@@ -22,7 +22,7 @@ class SequenceData(Sequence):
         self.start_time = time.time()
         self.target_image_shape = (conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH)
         self.label_generator = LabelGenerater(conf.MAX_SEQUENCE, self.target_image_shape, charsets)
-        self.image_loader = ImageLabelLoader(self.target_image_shape, self.charsets, "plaintxt", conf.MAX_SEQUENCE)
+        self.image_loader = ImageLabelLoader(self.target_image_shape, self.charsets, "plaintext", conf.MAX_SEQUENCE)
 
     def __len__(self):
         return int(math.ceil(len(self.data_list) / self.batch_size))
