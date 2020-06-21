@@ -65,10 +65,7 @@ def train(args):
     model.comile_model()
 
     # limit the GPU memory over occupy
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True  # 不全部占满显存, 按需分配
-    sess = tf.Session(config=config)
-    K.set_session(sess)
+    limit_gpu_memory_over_occupy()
 
     model.fit(
         x=train_sequence,
@@ -89,6 +86,12 @@ def train(args):
     model.save_weights(model_path)
     logger.info("Save model saved to ：%s", model_path)
 
+
+def limit_gpu_memory_over_occupy():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu,True)
 
 if __name__ == "__main__":
     log.init()
