@@ -27,7 +27,7 @@ class TextScannerModel(Model):
         self.class_branch = ClassBranchLayer(name="ClassBranchLayer", charset_size=len(charset),
                                              filter_num=conf.FILTER_NUM)
         self.geometry_branch = GeometryBranch(name="GeometryBranchLayer", conf=conf)
-        # self.word_formation = WordFormation(name="WordFormationLayer")
+        self.word_formation = WordFormation(name="WordFormationLayer")
         self.resnet50_model = ResNet50(include_top=False, weights='imagenet') # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
         self.resnet50_model.summary()
         self.fcn = FCNLayer(name="FCNLayer", filter_num=conf.FILTER_NUM, resnet50_model=self.resnet50_model)
@@ -54,7 +54,7 @@ class TextScannerModel(Model):
                   'categorical_crossentropy',
                   self.localization_map_loss(),
                  'categorical_crossentropy']
-        loss_weights = [1, 10, 10]#, 0]  # weight value refer from paper, and last 0 is mask to eliminate the words loss
+        loss_weights = [1, 10, 10, 0]  # weight value refer from paper, and last 0 is mask to eliminate the words loss
 
         # metrics
         metrics = ['categorical_accuracy',
