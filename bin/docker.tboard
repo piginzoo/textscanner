@@ -14,6 +14,7 @@ PWD=`pwd`
 echo "Run docker tensorboard ..."
 docker run --rm -it \
     -t --rm  \
+    -p 8087:8087 \
     --mount type=bind,source=$PWD,target=/root/textscanner \
     --mount type=bind,source=/root/.keras,target=/root/.keras \
     --mount type=bind,source=/app/data/textscanner/20200602_syntext/,target=/root/textscanner/data \

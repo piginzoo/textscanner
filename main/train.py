@@ -3,7 +3,6 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import EarlyStopping
 from utils.visualise_callback import TBoardVisual
 from tensorflow.keras.models import load_model
-from tensorflow.python.client import timeline
 from network.model import TextScannerModel
 from tensorflow.keras import backend as K
 from utils.sequence import SequenceData
@@ -58,21 +57,18 @@ def train(args):
 
     logger.info("Train begin：")
 
-    tboard = TensorBoard(log_dir=tb_log_name, histogram_freq=1, batch_size=2, write_grads=True)
+    tboard = TensorBoard(log_dir=tb_log_name, profile_batch=0)#, histogram_freq=1,  write_grads=True)
     early_stop = EarlyStopping(patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
-    # with tf.profiler.experimental.Profile(conf.DIR_TBOARD):
-    # with K.get_session()  as s:
-    # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-    # run_metadata = tf.RunMetadata()
-    # to = timeline.Timeline(run_metadata.step_stats)
-    # trace = to.generate_chrome_trace_format()
-    # with open('logs/full_trace.json', 'w') as out:
-    #     out.write(trace)
-
     model.comile_model()
+
+    # limit the GPU memory over occupy
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True  # 不全部占满显存, 按需分配
+    sess = tf.Session(config=config)
+    K.set_session(sess)
 
     model.fit(
         x=train_sequence,
