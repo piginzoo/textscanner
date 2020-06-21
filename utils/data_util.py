@@ -59,7 +59,7 @@ class ImageLabelLoader:
         # logger.debug("Loaded batch_lm:%r", batch_lm.shape)
         # logger.debug("[%s] loaded %d data", name, len(images))
 
-        return images, [batch_cs, batch_os, batch_lm, labels]
+        return images, [batch_cs, batch_os, batch_lm] #, labels]
 
     def load_one_image_label(self, image_path, label_path):
 
