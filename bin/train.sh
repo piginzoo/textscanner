@@ -1,8 +1,8 @@
 #!/bin/bash
 # 参数说明：
 # python -m main.train \
-#    --name=attention_ocr \
-#    --epochs=200 \                 # 200个epochs，但是不一定能跑完，因为由ealy stop
+	#    --name=attention_ocr \
+	#    --epochs=200 \                 # 200个epochs，但是不一定能跑完，因为由ealy stop
 #    --steps_per_epoch=1000 \       # 每个epoch对应的批次数，其实应该是总样本数/批次数，但是我们的样本上百万，太慢，所以，我们只去1000个批次
 #                                   # 作为一个epoch，为何要这样呢？因为只有每个epoch结束，keras才回调，包括validate、ealystop等
 #    --batch=64 \
@@ -33,21 +33,19 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     # 训练：10张训练，但是steps_per_epoch=2，batch=3，预想6张后，就会重新shuffle
     # 验证：使用sequence是不需要要validation_steps参数的，他会自己算，len(data)/batch
     #      如果你规定，那就得比它小才可以，另外还要验证，是不是把每个批次的结果做平均，还是算整体的
-    export CUDA_VISIBLE_DEVICES=0 # 调试不用GPU
     python -m main.train \
     --name=textscanner \
-    --epochs=1000 \
-    --debug_mode \
+    --epochs=10 \
+    --debug \
     --debug_step=10 \
-    --steps_per_epoch=1000 \
-    --batch=5 \
+    --steps_per_epoch=70 \
+    --batch=7 \
     --retrain=True \
     --learning_rate=0.001 \
     --train_label_dir=data/train \
     --validate_label_dir=data/validate \
-    --validation_batch=100 \
-    --validation_steps=10 \
-    --preprocess_num=10 \
+    --validation_batch=10 \
+    --validation_steps=7 \
     --workers=10 \
     --early_stop=10
 
@@ -74,10 +72,10 @@ nohup python -m main.train \
     --steps_per_epoch=1000 \
     --epochs=5000000 \
     --debug_step=1000 \
-    --batch=32 \
-    --retrain=True \
+    --batch=7 \
+    --retrain=False \
     --learning_rate=0.001 \
-    --validation_batch=64 \
+    --validation_batch=7 \
     --validation_steps=10 \
     --workers=10 \
     --early_stop=100 \

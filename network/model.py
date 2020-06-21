@@ -52,22 +52,24 @@ class TextScannerModel(Model):
         # the last "words" corresponding loss function is useless, will be masked by its weight, keep it only for metrics
         losses = ['categorical_crossentropy',
                   'categorical_crossentropy',
-                  self.localization_map_loss()]
-                  # 'categorical_crossentropy']
+                  self.localization_map_loss(),
+                 'categorical_crossentropy']
         loss_weights = [1, 10, 10]#, 0]  # weight value refer from paper, and last 0 is mask to eliminate the words loss
 
         # metrics
         metrics = ['categorical_accuracy',
                    'categorical_accuracy',
-                   'binary_accuracy']
-                   # 'categorical_accuracy']
+                   'binary_accuracy',
+                   'categorical_accuracy']
 
         self.compile(Adam(),
                      loss=losses,
                      loss_weights=loss_weights,
                      metrics=metrics,
                      run_eagerly=True)
+
         logger.info("######## TextScanner Model Structure ########")
+
         self.build(self.input_image.shape) # no build, no summary
         self.summary()
         logger.info("TextScanner Model was compiled.")
