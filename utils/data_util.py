@@ -1,5 +1,6 @@
-from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 from utils.label.label_maker import LabelGenerater
+from tensorflow.keras.utils import to_categorical
 from utils.label.label import ImageLabel
 from utils.label import label_utils
 import numpy as np
@@ -49,8 +50,8 @@ class ImageLabelLoader:
         batch_lm = np.array(batch_lm)
 
         # text one hot array
-        # labels = pad_sequences(label_text, maxlen=conf.MAX_SEQUENCE, padding="post", value=0)
-        # labels = to_categorical(labels, num_classes=len(charsets))
+        labels = pad_sequences(label_text, maxlen=conf.MAX_SEQUENCE, padding="post", value=0)
+        labels = to_categorical(labels, num_classes=len(self.charsets))
 
         # logger.debug("Loaded images:  %r", images.shape)
         # logger.debug("Loaded batch_cs:%r", batch_cs.shape)
@@ -58,7 +59,7 @@ class ImageLabelLoader:
         # logger.debug("Loaded batch_lm:%r", batch_lm.shape)
         # logger.debug("[%s] loaded %d data", name, len(images))
 
-        return images, [batch_cs, batch_os, batch_lm]  # ,labels]
+        return images, [batch_cs, batch_os, batch_lm, labels]
 
     def load_one_image_label(self, image_path, label_path):
 
