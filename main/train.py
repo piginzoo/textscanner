@@ -4,7 +4,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 from utils.visualise_callback import TBoardVisual
 from tensorflow.keras.models import load_model
 from network.model import TextScannerModel
-from tensorflow.keras import backend as K
 from utils.sequence import SequenceData
 from utils.label import label_utils
 from utils import logger as log
@@ -18,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 def train(args):
+    # limit the GPU memory over occupy
+    limit_gpu_memory_over_occupy()
+
+
     charset = label_utils.get_charset(conf.CHARSET)
     conf.CHARSET_SIZE = len(charset)
 
@@ -63,9 +66,6 @@ def train(args):
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
     model.comile_model()
-
-    # limit the GPU memory over occupy
-    limit_gpu_memory_over_occupy()
 
     model.fit(
         x=train_sequence,
