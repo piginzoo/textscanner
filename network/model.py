@@ -58,7 +58,7 @@ class TextScannerModel(Model):
 
         # metrics
         metrics = ['categorical_accuracy',
-                   'categorical_accuracy',
+                   'accuracy',
                    'binary_accuracy']
                    # 'categorical_accuracy']
 
