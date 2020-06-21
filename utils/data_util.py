@@ -2,7 +2,6 @@ from tensorflow.keras.utils import to_categorical
 from utils.label.label_maker import LabelGenerater
 from utils.label.label import ImageLabel
 from utils.label import label_utils
-import tensorflow as tf
 import numpy as np
 import cv2, os
 import logging
@@ -14,7 +13,7 @@ class ImageLabelLoader:
 
     def __init__(self, target_image_shape, charset, label_format, max_squence):
         self.charsets = charset
-        self.label_foramt = label_format
+        self.label_format = label_format
         self.target_image_shape = target_image_shape
         self.max_sequence = max_squence
         self.label_generator = LabelGenerater(max_squence, self.target_image_shape, charset)
@@ -81,4 +80,4 @@ class ImageLabelLoader:
         character_segment, order_sgementation, localization_map = self.label_generator.process(il)
         character_segment = to_categorical(character_segment,
                                            num_classes=len(self.charset) + 1)  # <--- size becoming big!!!
-        return character_segment, localization_map, order_sgementation, il.image, label_text
+        return character_segment, localization_map, order_sgementation, il.image, label_ids
