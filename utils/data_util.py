@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 class ImageLabelLoader:
 
-    def __init__(self, target_image_shape, charset, label_format, max_squence):
-        self.charsets = charset
+    def __init__(self, target_image_shape, charsets, label_format, max_squence):
+        self.charsets = charsets
         self.label_format = label_format
         self.target_image_shape = target_image_shape
         self.max_sequence = max_squence
-        self.label_generator = LabelGenerater(max_squence, self.target_image_shape, charset)
+        self.label_generator = LabelGenerater(max_squence, self.target_image_shape, charsets)
 
     def load_image_label(self, batch_data_list):
         images = []
@@ -72,10 +72,10 @@ class ImageLabelLoader:
 
         # text label
         label = il.label
-        label_ids = label_utils.strs2id(label, self.charset)
+        label_ids = label_utils.strs2id(label, self.charsets)
 
         # character_segment, order_maps, localization_map = label_generator.process(il)
         character_segment, order_sgementation, localization_map = self.label_generator.process(il)
         character_segment = to_categorical(character_segment,
-                                           num_classes=len(self.charset) + 1)  # <--- size becoming big!!!
+                                           num_classes=len(self.charsets) + 1)  # <--- size becoming big!!!
         return character_segment, localization_map, order_sgementation, il.image, label_ids
