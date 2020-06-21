@@ -31,8 +31,8 @@ class ImageLabelLoader:
                 logger.warning("Image [%s] does not exist", image_path)
                 continue
 
-            character_segment, localization_map, order_sgementation, image, label_text = \
-                self.load_one_image_label(image_path, label_path, label_text)
+            character_segment, localization_map, order_sgementation, image, label_ids = \
+                self.load_one_image_label(image_path, label_path)
 
             batch_cs.append(character_segment)
             batch_os.append(order_sgementation)
@@ -41,7 +41,7 @@ class ImageLabelLoader:
             # batch_om.append(order_maps)
 
         images = np.array(images, np.float32)
-        label_text.append(label_text)
+        label_text.append(label_ids)
         batch_cs = np.array(batch_cs)
         # batch_om = np.array(batch_om)
         batch_os = np.array(batch_os)
@@ -59,10 +59,8 @@ class ImageLabelLoader:
 
         return images, [batch_cs, batch_os, batch_lm]  # ,labels]
 
-    def load_one_image_label(self, data):
-        # print(data)
-        #import pdb; pdb.set_trace()
-        image_path, label_path = data[0],data[1]
+    def load_one_image_label(self, image_path, label_path):
+
         label_file = open(label_path, encoding="utf-8")
         data = label_file.readlines()
         label_file.close()
