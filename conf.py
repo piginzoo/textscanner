@@ -47,7 +47,7 @@ def init_args():
     print("==============================")
     print(args)
 
-    sys.modules[__name__].DEBUG = args.debug_mode
+    sys.modules[__name__].DEBUG = args.debug
 
     if args.debug:
         print("Running in DEBUG mode!")
