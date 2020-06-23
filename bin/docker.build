@@ -1,5 +1,5 @@
 if [ "$1" == "proxy" ]; then
-    echo "Run training with proxy"
+    echo "Run build docker image with proxy"
     docker build \
         --network host \
         --build-arg http_proxy="http://172.17.0.1:8123" \

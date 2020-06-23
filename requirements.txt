@@ -1,10 +1,6 @@
-Keras-Preprocessing
 python-levenshtein
-Keras-Applications
-tensorboard_plugin_profile
 opencv-python
 matplotlib
 pyclipper
 pillow
-keras
 numpy
