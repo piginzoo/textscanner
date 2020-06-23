@@ -47,8 +47,8 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     --batch=7 \
     --retrain=True \
     --learning_rate=0.001 \
-    --train_label_dir=data/train \
-    --validate_label_dir=data/validate \
+    --train_label_dir=data/train.english \
+    --validate_label_dir=data/validate.english \
     --validation_batch=10 \
     --validation_steps=7 \
     --workers=10 \
@@ -78,14 +78,16 @@ echo "Using #$CUDA_VISIBLE_DEVICES GPU"
 
 nohup python -m main.train \
     --name=textscanner \
-    --steps_per_epoch=1000 \
+    --steps_per_epoch=2000 \
     --epochs=5000000 \
     --debug_step=1000 \
-    --batch=7 \
+    --batch=32 \
     --retrain=False \
     --learning_rate=0.001 \
-    --validation_batch=7 \
-    --validation_steps=10 \
+    --validation_batch=10 \
+    --validation_steps=100 \
+    --train_label_dir=data/train.english \
+    --validate_label_dir=data/validate.english \
     --workers=10 \
     --early_stop=100 \
     >> ./logs/Attention_GPU$CUDA_VISIBLE_DEVICES_$Date.log 2>&1 &

@@ -13,5 +13,5 @@ ADD requirements.txt /root/requirements.txt
 RUN pip install -r /root/requirements.txt
 
 # we cannot find tf2.2.0 image, so we use tf2.1 to upgrade
-RUN pip install tensorflow-gpu==2.2.0
-RUN pip install tensorboard_plugin_profile
+# RUN pip install tensorflow-gpu==2.2.0
+# RUN pip install tensorboard_plugin_profile

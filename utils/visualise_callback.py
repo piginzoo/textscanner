@@ -1,12 +1,12 @@
 from tensorflow.python.framework.ops import EagerTensor
 from tensorflow.keras.callbacks import Callback
+from utils.data_util import ImageLabelLoader
 from PIL import Image, ImageFont
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
 import logging
 import io, cv2
-
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class TBoardVisual(Callback):
         np.random.shuffle(self.validate_sequence.data_list)
         data = self.validate_sequence.data_list[:9]  # hard code 9 images
         # images, labels: [batch_cs,batch_om,batch_lm)]
-        images, labels = self.validate_sequence.load_image_label(data)
+        images, labels = self.validate_sequence.image_loader.load_image_label(data)
 
         writer = tf.summary.create_file_writer(self.tboard_dir)
 

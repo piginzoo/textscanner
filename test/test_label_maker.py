@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import logging
 import os, cv2
+import time
 import conf
 
 debug_dir = "data/debug"
@@ -52,17 +53,18 @@ def save_image(name, gt, image=None, highlight=False):
 def test_make_label(image_path, charset):
     dir, image_name = os.path.split(image_path)
     name, ext = os.path.splitext(image_name)
-    if ext != ".png": return
+    if ext != ".png" and ext != ".jpg":
+        print("[ERROR] 不是图像：", image_name)
+        return None
     json_path = os.path.join(dir, name + ".txt")
 
     print("----------------------------------------------")
     print("Image: ", image_name)
 
+    start = time.time()
     image = cv2.imread(image_path)
-
     f = open(json_path, encoding="utf-8")
     data = f.readlines()
-
     image_label = ImageLabel(image,
                              data,
                              format="plaintext",
@@ -71,8 +73,8 @@ def test_make_label(image_path, charset):
     generator = LabelGenerater(conf.MAX_SEQUENCE,
                                target_image_shape=(conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH),
                                charset=charset)
-
     character_segment, order_maps, localization_map = generator.process(image_label)
+    time_eclapse = time.time() - start
 
     if not os.path.exists(debug_dir): os.makedirs(debug_dir)
 
@@ -85,6 +87,8 @@ def test_make_label(image_path, charset):
         save_image(os.path.join(debug_dir, f"{name}_order_map_{i + 1}.jpg"), order_map, image)
 
     test_word_formulation(character_segment, charset, image_label, order_maps)
+
+    return time_eclapse
 
 
 # 尝试还原结果，看看是不是可以在复原判断出原有的汉字，
@@ -131,20 +135,28 @@ def test_word_formulation(character_segment_G, charset, image_label, order_maps_
         print("Missed :", label_utils.id2str(indices[-top:].tolist(), charset))
 
 
+# python -m test.test_label_maker
 if __name__ == "__main__":
     logging.basicConfig(format="%(levelname)s %(message)s", level=logging.DEBUG)
 
     charset = label_utils.get_charset(charset_path)
 
     # test  目录里的所有
-    # dir = "data/train"
-    # files = os.listdir(dir)
-    # for f in files:
-    #     image_path = os.path.join(dir,f)
-    #     test_make_label(image_path, charset)
+    dir = "data/train"
+    files = os.listdir(dir)
+    time_all = count = 0
+    for f in files:
+        image_path = os.path.join(dir,f)
+        t = test_make_label(image_path, charset)
+        if t:
+            count+=1
+            time_all += t
+            print("此样本处理耗时:%f秒" % t)
+    print("平均每样本耗时：%f秒" %(time_all/count))
 
     # test 单张
-    test_make_label("data/train/3-5.png", charset)
+    # time = test_make_label("data/train/3-5.png", charset)
+    # print("耗时:%d秒" % time)
     # test_make_label("data/train/0-6.png", charset)
     # test_make_label("data/train/0-23.png", charset)
     # test_make_label("data/train/2-16.png", charset)
