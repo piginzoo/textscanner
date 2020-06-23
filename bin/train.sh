@@ -89,4 +89,5 @@ python -m main.train \
     --train_label_dir=data/train.english \
     --validate_label_dir=data/validate.english \
     --workers=10 \
-    --early_stop=100
+    --early_stop=100 \
+    >> ./logs/Console_GPU$CUDA_VISIBLE_DEVICES_$Date.log 2>&1 &
