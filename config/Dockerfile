@@ -13,8 +13,15 @@ ADD requirements.txt /root/requirements.txt
 RUN pip install -r /root/requirements.txt
 
 # time zone
-ENV TZ=Asia/Shanghai
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+ENV LANG zh_CN.UTF-8
+ENV LANGUAGE zh_CN:zh
+ENV LC_ALL zh_CN.UTF-8
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+RUN apt install tzdata
+RUN rm /etc/localtime
+RUN ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo 'Asia/Shanghai' >/etc/timezone
 
 # we cannot find tf2.2.0 image, so we use tf2.1 to upgrade
 # RUN pip install tensorflow-gpu==2.2.0
