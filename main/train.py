@@ -59,7 +59,7 @@ def train(args):
 
     logger.info("Train begin：")
 
-    tboard = TensorBoard(log_dir=tb_log_name, profile_batch=2, histogram_freq=1, write_grads=True)
+    tboard = TensorBoard(log_dir=tb_log_name, profile_batch=2, histogram_freq=1)
     early_stop = EarlyStopping(patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)

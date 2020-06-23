@@ -76,7 +76,7 @@ fi
 echo "Production Mode ..."
 echo "Using #$CUDA_VISIBLE_DEVICES GPU"
 
-python -m main.train \
+nohup python -m main.train \
     --name=textscanner \
     --steps_per_epoch=2000 \
     --epochs=5000000 \
