@@ -30,8 +30,9 @@ if [ "$2" == "term" ]; then
     exit
 fi
 
-echo "Run docker train ..."
-docker run --rm -it \
+if [ "$2" == "console" ]; then
+    echo "Run docker train in console ..."
+    docker run --rm -it \
     -e NVIDIA_VISIBLE_DEVICES=$1 \
     -t --rm  \
     --runtime=nvidia  \
@@ -42,3 +43,18 @@ docker run --rm -it \
     --workdir /root/textscanner \
     textscanner.img \
     bin/train.sh $2
+    exit
+fi
+
+echo "Run docker train in background (PRODUCTION MODE)..."
+docker run --rm -it -d \
+    -e NVIDIA_VISIBLE_DEVICES=$1 \
+    -t --rm  \
+    --runtime=nvidia  \
+    --mount type=bind,source=$PWD,target=/root/textscanner \
+    --mount type=bind,source=/root/.keras,target=/root/.keras \
+    --mount type=bind,source=/app/data/textscanner/20200602_syntext/,target=/root/textscanner/data \
+    --name textscanner \
+    --workdir /root/textscanner \
+    textscanner.img \
+    bin/train.sh
