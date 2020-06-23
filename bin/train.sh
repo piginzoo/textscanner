@@ -76,7 +76,7 @@ fi
 echo "Production Mode ..."
 echo "Using #$CUDA_VISIBLE_DEVICES GPU"
 
-nohup python -m main.train \
+python -m main.train \
     --name=textscanner \
     --steps_per_epoch=2000 \
     --epochs=5000000 \
@@ -89,5 +89,4 @@ nohup python -m main.train \
     --train_label_dir=data/train.english \
     --validate_label_dir=data/validate.english \
     --workers=10 \
-    --early_stop=100 \
-    >> ./logs/Attention_GPU$CUDA_VISIBLE_DEVICES_$Date.log 2>&1 &
+    --early_stop=100
