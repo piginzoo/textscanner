@@ -59,7 +59,8 @@ def train(args):
 
     logger.info("Train begin：")
 
-    tboard = TensorBoard(log_dir=tb_log_name, profile_batch=2, histogram_freq=1)
+    # update tboard scalar per 100 batches, profile no. 2 batch of each epoch
+    tboard = TensorBoard(log_dir=tb_log_name, update_freq=100, profile_batch=2, histogram_freq=0)
     early_stop = EarlyStopping(patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
     visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)

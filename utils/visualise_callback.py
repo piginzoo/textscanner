@@ -1,12 +1,12 @@
 from tensorflow.python.framework.ops import EagerTensor
 from tensorflow.keras.callbacks import Callback
-from utils.data_util import ImageLabelLoader
 from PIL import Image, ImageFont
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
 import logging
 import io, cv2
+import conf
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +42,10 @@ class TBoardVisual(Callback):
         # import pdb
         # pdb.set_trace()
         pred = self.model(images)  # return [character_segment, order_map, localization_map]
-        logger.debug("Model call,input images:\t%r", images.shape)
-        logger.debug("Model call,return character_segment:\t%r", pred[0].shape)
-        logger.debug("Model call,return order_map:\t%r", pred[1].shape)
-        logger.debug("Model call,return localization_map:\t%r", pred[2].shape)
+        if conf.DEBUG: logger.debug("Model call,input images:\t%r", images.shape)
+        if conf.DEBUG: logger.debug("Model call,return character_segment:\t%r", pred[0].shape)
+        if conf.DEBUG: logger.debug("Model call,return order_map:\t%r", pred[1].shape)
+        if conf.DEBUG: logger.debug("Model call,return localization_map:\t%r", pred[2].shape)
 
         label_character_segments = labels[0]
         label_localization_maps = labels[2]
@@ -63,12 +63,12 @@ class TBoardVisual(Callback):
             pred_order_map = pred[1][i]
             # pred_order_segment = pred[3]
 
-            logger.debug("label_character_segment:%r", label_character_segment.shape)
-            logger.debug("label_localization_map:%r", label_localization_map.shape)
-            logger.debug("label_order_map:%r", label_order_map.shape)
-            logger.debug("pred_character_segment:%r", pred_character_segment.shape)
-            logger.debug("pred_localization_map:%r", pred_localization_map.shape)
-            logger.debug("pred_order_map:%r", pred_order_map.shape)
+            if conf.DEBUG: logger.debug("label_character_segment:%r", label_character_segment.shape)
+            if conf.DEBUG: logger.debug("label_localization_map:%r", label_localization_map.shape)
+            if conf.DEBUG: logger.debug("label_order_map:%r", label_order_map.shape)
+            if conf.DEBUG: logger.debug("pred_character_segment:%r", pred_character_segment.shape)
+            if conf.DEBUG: logger.debug("pred_localization_map:%r", pred_localization_map.shape)
+            if conf.DEBUG: logger.debug("pred_order_map:%r", pred_order_map.shape)
 
             label_character_segment = np.argmax(label_character_segment, axis=-1)
             pred_character_segment = np.argmax(pred_character_segment, axis=-1)
