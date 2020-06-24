@@ -20,4 +20,4 @@ docker run --rm  -d \
     --name textscanner_tboard \
     --workdir /root/textscanner \
     textscanner.img \
-    tensorboard --host 0.0.0.0 --port $1 --logdir ./logs/tboard
+    tensorboard --host 0.0.0.0 --port $1 --logdir ./logs/tboard --reload_multifile True
