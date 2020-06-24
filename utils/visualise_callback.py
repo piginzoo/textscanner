@@ -85,7 +85,7 @@ class TBoardVisual(Callback):
             # self.draw(writer, "pred_order_segment", image, pred_order_segment)
 
         writer.close()
-
+        logger.debug("Visual Debugging done!")
         return
 
     def draw_image(self, writer, name, image, gt_pred, text=None, highlight=False):
