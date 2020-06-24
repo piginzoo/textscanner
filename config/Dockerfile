@@ -5,7 +5,13 @@ MAINTAINER piginzoo
 RUN cp /etc/apt/sources.list /etc/apt/sources.list.backup
 ADD config/sources.list /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get install -y vim build-essential libglib2.0-0 libsm6 libxext6 libxrender-dev
+#RUN apt-get install -y vim build-essential libglib2.0-0 libsm6 libxext6 libxrender-dev
+
+# support cv2
+RUN apt-get install -y libsm6
+RUN apt-get install -y libxrender1
+RUN apt-get install -y libxext-dev
+
 
 RUN mkdir /root/.pip
 ADD config/pip.conf /root/.pip
@@ -13,9 +19,6 @@ ADD requirements.txt /root/requirements.txt
 RUN pip install -r /root/requirements.txt
 
 # time zone
-ENV LANG zh_CN.UTF-8
-ENV LANGUAGE zh_CN:zh
-ENV LC_ALL zh_CN.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 RUN apt install tzdata
