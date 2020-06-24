@@ -5,7 +5,7 @@ fi
 
 if [ "$1" == "stop" ]; then
     echo "Try to shutdown training docker container ..."
-    docker ps|grep textscanner|awk '{print $1}'|xargs docker stop
+    docker ps|grep textscanner_train|awk '{print $1}'|xargs docker stop
     exit
 fi
 
@@ -39,7 +39,7 @@ if [ "$2" == "console" ]; then
     --mount type=bind,source=$PWD,target=/root/textscanner \
     --mount type=bind,source=/root/.keras,target=/root/.keras \
     --mount type=bind,source=/app/data/textscanner/20200602_syntext/,target=/root/textscanner/data \
-    --name textscanner \
+    --name textscanner_train \
     --workdir /root/textscanner \
     textscanner.img \
     bin/train.sh $2
@@ -54,7 +54,7 @@ docker run --rm -it -d \
     --mount type=bind,source=$PWD,target=/root/textscanner \
     --mount type=bind,source=/root/.keras,target=/root/.keras \
     --mount type=bind,source=/app/data/textscanner/20200602_syntext/,target=/root/textscanner/data \
-    --name textscanner \
+    --name textscanner_train \
     --workdir /root/textscanner \
     textscanner.img \
     bin/train.sh
