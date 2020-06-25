@@ -15,8 +15,7 @@ About the paper unstanding, please read about it at my blog : [TextScanner的一
 - 2020.4.24 create the project and implement the skeleton of the project
 - 2020.4.30 implement the network code, and finish the GT generator and loss function
 - 2020.5.12 the network works now after hundreds of trouble-shootings,TF2.0/tk.keras is full of pit
-
+- 2020.6.03 make a new branch to solave the OOM issue
 
 # implement details
-
-## 
+Developing detail can be tracked by my [textscanner implementation issues](https://www.notion.so/piginzoospace/Textscanner-254a700668714f0d811afe2ab8124046).
