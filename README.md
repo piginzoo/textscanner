@@ -9,7 +9,7 @@ About the paper unstanding, please read about it at my blog : [TextScanner的一
 - [X] create the character annotation GT, and prepare none character level GT
 - [X] implement train code
 - [ ] implement evaluation code
-- [ ] train the model
+- [X] train the model
 
 # developing logs
 - 2020.4.24 create the project and implement the skeleton of the project

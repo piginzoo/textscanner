@@ -24,28 +24,28 @@ class ImageLabelLoader:
         images = []
         batch_cs = []  # Character Segment
         batch_os = []  # Order Segment
-        # batch_om = [] # Order Map
+        batch_om = []  # Order Map
         batch_lm = []  # Localization Map
-        label_text = []  # label text
+        label_text = []# label text
         for image_path, label_path in batch_data_list:
 
             if not os.path.exists(image_path):
                 logger.warning("Image [%s] does not exist", image_path)
                 continue
 
-            character_segment, localization_map, order_sgementation, image, label_ids = \
+            character_segment, localization_map, order_sgementation, order_maps, image, label_ids = \
                 self.load_one_image_label(image_path, label_path)
 
             batch_cs.append(character_segment)
             batch_os.append(order_sgementation)
             batch_lm.append(localization_map)
             images.append(image)
-            # batch_om.append(order_maps)
+            batch_om.append(order_maps)
 
         images = np.array(images, np.float32)
         label_text.append(label_ids)
         batch_cs = np.array(batch_cs)
-        # batch_om = np.array(batch_om)
+        batch_om = np.array(batch_om)
         batch_os = np.array(batch_os)
         batch_lm = np.array(batch_lm)
 
@@ -59,7 +59,10 @@ class ImageLabelLoader:
         # logger.debug("Loaded batch_lm:%r", batch_lm.shape)
         # logger.debug("[%s] loaded %d data", name, len(images))
 
-        return images, [batch_cs, batch_os, batch_lm] #, labels]
+        # return images, [batch_cs, batch_os, batch_lm] #, labels]
+        return images, {'character_segmentation': batch_cs,
+                        'order_map': batch_om,
+                        'localization_map': batch_lm}
 
     def load_one_image_label(self, image_path, label_path):
 
@@ -70,14 +73,13 @@ class ImageLabelLoader:
         target_size = (self.target_image_shape[1], self.target_image_shape[0])
         # inside it, the bboxes size will be adjust
         il = ImageLabel(cv2.imread(image_path), data, self.label_format, target_size=target_size)
-        if conf.DEBUG: logger.debug("Loaded label generates training labels")
 
         # text label
         label = il.label
         label_ids = label_utils.strs2id(label, self.charsets)
 
         # character_segment, order_maps, localization_map = label_generator.process(il)
-        character_segment, order_sgementation, localization_map = self.label_generator.process(il)
+        character_segment, order_sgementation, order_maps, localization_map = self.label_generator.process(il)
         character_segment = to_categorical(character_segment,
                                            num_classes=len(self.charsets) + 1)  # <--- size becoming big!!!
-        return character_segment, localization_map, order_sgementation, il.image, label_ids
+        return character_segment, localization_map, order_sgementation, order_maps, il.image, label_ids

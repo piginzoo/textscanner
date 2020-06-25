@@ -8,7 +8,6 @@ from utils.util import call_debug as _call
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
-import tensorflow as tf
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,16 +27,23 @@ class TextScannerModel(Model):
                                              filter_num=conf.FILTER_NUM)
         self.geometry_branch = GeometryBranch(name="GeometryBranchLayer", conf=conf)
         # self.word_formation = WordFormation(name="WordFormationLayer")
-        self.resnet50_model = ResNet50(include_top=False, weights='imagenet') # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
+        self.resnet50_model = ResNet50(include_top=False,
+                                       weights='imagenet')  # Resnet50+FCN：参考 http://www.piginzoo.com/machine-learning/2020/04/23/fcn-unet#resnet50%E7%9A%84fcn
         self.resnet50_model.summary()
         self.fcn = FCNLayer(name="FCNLayer", filter_num=conf.FILTER_NUM, resnet50_model=self.resnet50_model)
 
     def call(self, inputs, training=None):
         fcn_features = _call(self.fcn, inputs)
         character_segmentation = _call(self.class_branch, fcn_features)
-        order_map, localization_map, order_segment = _call(self.geometry_branch, fcn_features)
+
+        order_map, localization_map, _ = _call(self.geometry_branch, fcn_features)
         # words = _call(self.word_formation, character_segmentation, order_map)
-        return character_segmentation, order_segment, localization_map#, words  # the sequence of them is critical for loss & metrics
+
+        return {'character_segmentation': character_segmentation,
+                'order_map': order_map,
+                'localization_map': localization_map}
+
+        # return character_segmentation, order_segment, localization_map#, words  # the sequence of them is critical for loss & metrics
 
     def localization_map_loss(self):
         def smoothL1(y_true, y_pred):
@@ -50,17 +56,26 @@ class TextScannerModel(Model):
     def comile_model(self):
         # model predict output are: character_segmentation(G), order_segment(S), localization_map(Q), words
         # the last "words" corresponding loss function is useless, will be masked by its weight, keep it only for metrics
-        losses = ['categorical_crossentropy',
-                  'categorical_crossentropy',
-                  self.localization_map_loss()]
-                 # 'categorical_crossentropy']
-        loss_weights = [1, 10, 10]#, 0]  # weight value refer from paper, and last 0 is mask to eliminate the words loss
+        losses = {'character_segmentation': 'categorical_crossentropy',
+                  'order_map': 'categorical_crossentropy',
+                  'localization_map': self.localization_map_loss()}
+        loss_weights = {'character_segmentation': 1,
+                        'order_map': 10,
+                        'localization_map': 10}
+        metrics = {'character_segmentation': ['categorical_accuracy'],
+                   'order_map': ['categorical_accuracy'],
+                   'localization_map': ['binary_accuracy']}
 
+        # losses = ['categorical_crossentropy',
+        #           'categorical_crossentropy',
+        #           self.localization_map_loss()]
+        #          # 'categorical_crossentropy']
+        # loss_weights = [1, 10, 10]#, 0]  # weight value refer from paper, and last 0 is mask to eliminate the words loss
         # metrics
-        metrics = ['categorical_accuracy',
-                   'categorical_accuracy',
-                   'binary_accuracy']
-                   # 'categorical_accuracy']
+        # metrics = ['categorical_accuracy',
+        #            'categorical_accuracy',
+        #            'binary_accuracy']
+        #            # 'categorical_accuracy']
 
         self.compile(Adam(),
                      loss=losses,
@@ -68,8 +83,8 @@ class TextScannerModel(Model):
                      metrics=metrics,
                      run_eagerly=True)
 
-        logger.info("######## TextScanner Model Structure ########")
 
-        self.build(self.input_image.shape) # no build, no summary
+        self.build(self.input_image.shape)  # no build, no summary
+        logger.info("######## TextScanner Model Structure ########")
         self.summary()
         logger.info("TextScanner Model was compiled.")

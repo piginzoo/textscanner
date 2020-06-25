@@ -42,16 +42,16 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     --name=textscanner \
     --epochs=10 \
     --debug \
-    --debug_step=10 \
-    --steps_per_epoch=70 \
-    --batch=7 \
+    --debug_step=100 \
+    --steps_per_epoch=33 \
+    --batch=3 \
     --retrain=True \
     --learning_rate=0.001 \
     --train_label_dir=data/train.english \
     --validate_label_dir=data/validate.english \
-    --validation_batch=10 \
-    --validation_steps=7 \
-    --workers=10 \
+    --validation_batch=3 \
+    --validation_steps=3 \
+    --workers=3 \
     --early_stop=10
 
     if [ "$1" == "debug" ]; then

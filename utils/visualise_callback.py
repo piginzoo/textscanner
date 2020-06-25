@@ -11,7 +11,47 @@ import conf
 logger = logging.getLogger(__name__)
 
 
-class TBoardVisual(Callback):
+class VisualCallback(Callback):
+    def on_batch_end(self, batch, logs=None):
+
+        if batch % self.args.debug_step != 0: return
+
+        logger.debug("Try to dump the debug images to tboard")
+
+        # self.validation_data is framework pre-defined variable
+        np.random.shuffle(self.validate_sequence.data_list)
+        data = self.validate_sequence.data_list[:conf.VISUAL_IMAGES]  # hard code 9 images
+        # images, labels: [batch_cs,batch_om,batch_lm)]
+        images, labels = self.validate_sequence.image_loader.load_image_label(data)
+
+        writer = tf.summary.create_file_writer(self.tboard_dir)
+
+        pred = self.model(images)  # return [character_segment, order_map, localization_map]
+
+        # [W,H,C]=>[W,H] by argmax to adapt the image dimension
+        label_character_segments = np.argmax(labels['character_segmentation'], axis=-1)
+        pred_character_segments = np.argmax(pred['character_segmentation'], axis=-1)
+        label_localization_maps = labels['localization_map']
+        pred_localization_maps = pred['localization_map']
+        label_order_maps = labels['order_map']
+        pred_order_maps = pred['order_map']
+
+        for i in range(len(images)):
+            image = images[i]
+
+            self.draw_image(writer, f"label_character_segment_{i}", image, label_character_segments[i], highlight=True)
+            self.draw_image(writer, f"pred_character_segment_{i}", image, pred_character_segments[i], highlight=True)
+            self.draw_image(writer, f"label_localization_map_{i}", image, label_localization_maps[i])
+            self.draw_image(writer, f"pred_localization_map_{i}", image, pred_localization_maps[i])
+            for j in range(label_order_maps[i].shape[-1]):
+                self.draw_image(writer, f"label_order_maps_{i}_{j}", image, label_order_maps[i][:, :, j])
+            for j in range(pred_order_maps[i].shape[-1]):
+                self.draw_image(writer, f"pred_order_maps_{i}_{j}", image, pred_order_maps[i][:, :, j])
+
+        writer.close()
+
+        return
+
     """
         Visualization the training process for debugging
     """
@@ -24,69 +64,6 @@ class TBoardVisual(Callback):
         self.charset = charset
         self.font = ImageFont.truetype("data/fonts/simsun.ttc", 10)  # 设置字体
         self.validate_sequence = validate_sequence
-
-    def on_batch_end(self, batch, logs=None):
-
-        if batch % self.args.debug_step != 0: return
-
-        logger.debug("Try to dump the debug images to tboard")
-
-        # self.validation_data is framework pre-defined variable
-        np.random.shuffle(self.validate_sequence.data_list)
-        data = self.validate_sequence.data_list[:9]  # hard code 9 images
-        # images, labels: [batch_cs,batch_om,batch_lm)]
-        images, labels = self.validate_sequence.image_loader.load_image_label(data)
-
-        writer = tf.summary.create_file_writer(self.tboard_dir)
-
-        # import pdb
-        # pdb.set_trace()
-        pred = self.model(images)  # return [character_segment, order_map, localization_map]
-        if conf.DEBUG: logger.debug("Model call,input images:\t%r", images.shape)
-        if conf.DEBUG: logger.debug("Model call,return character_segment:\t%r", pred[0].shape)
-        if conf.DEBUG: logger.debug("Model call,return order_map:\t%r", pred[1].shape)
-        if conf.DEBUG: logger.debug("Model call,return localization_map:\t%r", pred[2].shape)
-
-        label_character_segments = labels[0]
-        label_localization_maps = labels[2]
-        label_order_maps = labels[1]
-
-        for i in range(len(images)):
-            image = images[i]
-
-            label_character_segment = label_character_segments[i]
-            label_localization_map = label_localization_maps[i]
-            label_order_map = label_order_maps[i]
-
-            pred_character_segment = pred[0][i]
-            pred_localization_map = pred[2][i]
-            pred_order_map = pred[1][i]
-            # pred_order_segment = pred[3]
-
-            if conf.DEBUG: logger.debug("label_character_segment:%r", label_character_segment.shape)
-            if conf.DEBUG: logger.debug("label_localization_map:%r", label_localization_map.shape)
-            if conf.DEBUG: logger.debug("label_order_map:%r", label_order_map.shape)
-            if conf.DEBUG: logger.debug("pred_character_segment:%r", pred_character_segment.shape)
-            if conf.DEBUG: logger.debug("pred_localization_map:%r", pred_localization_map.shape)
-            if conf.DEBUG: logger.debug("pred_order_map:%r", pred_order_map.shape)
-
-            label_character_segment = np.argmax(label_character_segment, axis=-1)
-            pred_character_segment = np.argmax(pred_character_segment, axis=-1)
-            label_order_map = np.argmax(label_order_map, axis=-1)
-            pred_order_map = np.argmax(pred_order_map, axis=-1)
-
-            self.draw_image(writer, f"label_character_segment_{i}", image, label_character_segment, highlight=True)
-            self.draw_image(writer, f"pred_character_segment_{i}", image, pred_character_segment, highlight=True)
-            self.draw_image(writer, f"label_localization_map_{i}", image, label_localization_map)
-            self.draw_image(writer, f"pred_localization_map_{i}", image, pred_localization_map)
-            self.draw_image(writer, f"label_order_maps_{i}", image, label_order_map)
-            self.draw_image(writer, f"pred_order_maps_{i}", image, pred_order_map)
-
-            # self.draw(writer, "pred_order_segment", image, pred_order_segment)
-
-        writer.close()
-
-        return
 
     def draw_image(self, writer, name, image, gt_pred, text=None, highlight=False):
 

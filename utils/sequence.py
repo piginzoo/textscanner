@@ -4,6 +4,7 @@ from tensorflow.keras.utils import Sequence
 from utils.label import label_utils
 import logging, math
 import numpy as np
+import conf
 import time
 
 logger = logging.getLogger("SequenceData")
@@ -29,6 +30,7 @@ class SequenceData(Sequence):
 
     def __getitem__(self, idx):
         batch_data_list = self.data_list[idx * self.batch_size: (idx + 1) * self.batch_size]
+        if conf.DEBUG: logger.debug("[%s] Load batch data,idx=%d", self.name,idx)
         images, labels = self.image_loader.load_image_label(batch_data_list)
         return images, labels
 

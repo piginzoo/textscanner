@@ -1,7 +1,7 @@
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import EarlyStopping
-from utils.visualise_callback import TBoardVisual
+from utils.visualise_callback import VisualCallback
 from tensorflow.keras.models import load_model
 from network.model import TextScannerModel
 from utils.sequence import SequenceData
@@ -60,10 +60,10 @@ def train(args):
     logger.info("Train begin：")
 
     # update tboard scalar per 100 batches, profile no. 2 batch of each epoch
-    tboard = TensorBoard(log_dir=tb_log_name, update_freq=100, profile_batch=0, histogram_freq=0)
+    tboard = TensorBoard(log_dir=tb_log_name, update_freq=conf.UPDATE_FREQ, profile_batch=0, histogram_freq=0)
     early_stop = EarlyStopping(patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
-    visibility_debug = TBoardVisual('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
+    visibility_debug = VisualCallback('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
 
     model.comile_model()
 

@@ -14,6 +14,8 @@ FEATURE_MAP_REDUCE = 8  # 相比原始图片，feature map缩小几倍（送入b
 FILTER_NUM = 256  # 自定义层中的默认隐含神经元的个数
 
 DEBUG = False
+UPDATE_FREQ  = 100 # how match(batches) to update the tensorboard logs
+VISUAL_IMAGES = 3  # how match(batches) to dump visiualization images
 
 DIR_LOGS = "logs"
 DIR_TBOARD = "logs/tboard"
@@ -54,6 +56,7 @@ def init_args():
         print("Running in DEBUG mode!")
         sys.modules[__name__].DEBUG = True
         sys.modules[__name__].FILTER_NUM = 1
+        sys.modules[__name__].UPDATE_FREQ = 1
 
     return args
 

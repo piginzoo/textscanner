@@ -55,7 +55,7 @@ def test_make_label(image_path, charset):
     name, ext = os.path.splitext(image_name)
     if ext != ".png" and ext != ".jpg":
         print("[ERROR] 不是图像：", image_name)
-        return None
+        return None,None
     json_path = os.path.join(dir, name + ".txt")
 
     print("----------------------------------------------")
@@ -74,7 +74,7 @@ def test_make_label(image_path, charset):
                                target_image_shape=(conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH),
                                charset=charset)
     character_segment, order_maps, localization_map = generator.process(image_label)
-    time_eclapse = time.time() - start
+    time_eclapse_makelabel = time.time() - start
 
     if not os.path.exists(debug_dir): os.makedirs(debug_dir)
 
@@ -86,9 +86,9 @@ def test_make_label(image_path, charset):
     for i, order_map in enumerate(order_maps):
         save_image(os.path.join(debug_dir, f"{name}_order_map_{i + 1}.jpg"), order_map, image)
 
-    test_word_formulation(character_segment, charset, image_label, order_maps)
+    time_eclapse_word_formulation =  test_word_formulation(character_segment, charset, image_label, order_maps)
 
-    return time_eclapse
+    return time_eclapse_makelabel, time_eclapse_word_formulation
 
 
 # 尝试还原结果，看看是不是可以在复原判断出原有的汉字，
@@ -100,6 +100,7 @@ def test_word_formulation(character_segment_G, charset, image_label, order_maps_
     # print("G.shape:", G.shape)
     # print("order_maps.shape/H:", order_maps_H.shape)
 
+    start = time.time()
     pred = ""
     indices,max_sum = None, None
     for i, H_k in enumerate(H):
@@ -134,6 +135,11 @@ def test_word_formulation(character_segment_G, charset, image_label, order_maps_
         print(f"Prob {top} :", max_sum[-top:])
         print("Missed :", label_utils.id2str(indices[-top:].tolist(), charset))
 
+    t = time.time()-start
+    print("Word Formulation time: %f" % t)
+    return t
+
+
 
 # python -m test.test_label_maker
 if __name__ == "__main__":
@@ -144,15 +150,16 @@ if __name__ == "__main__":
     # test  目录里的所有
     dir = "data/train"
     files = os.listdir(dir)
-    time_all = count = 0
+    time_all_ml = time_all_wf = count = 0
     for f in files:
         image_path = os.path.join(dir,f)
-        t = test_make_label(image_path, charset)
-        if t:
+        t_ml, t_wf = test_make_label(image_path, charset)
+        if t_ml:
             count+=1
-            time_all += t
-            print("此样本处理耗时:%f秒" % t)
-    print("平均每样本耗时：%f秒" %(time_all/count))
+            time_all_ml += t_ml
+            time_all_wf += t_wf
+            print("此样本处理耗时:%f秒,Word Form: %f" % (t_ml, t_wf))
+    print("平均每样本耗时：%f秒, Word Form平均耗时：" %(time_all_ml/count,time_all_wf/count))
 
     # test 单张
     # time = test_make_label("data/train/3-5.png", charset)

@@ -62,7 +62,7 @@ class LabelGenerater():
         character_segment = self.render_character_segemention(image_labels)
         localization_map = np.zeros(self.target_image_shape, dtype=np.float32)
         order_segments = np.zeros((*self.target_image_shape, self.max_sequence), dtype=np.float32)
-        #order_maps = np.zeros((*self.target_image_shape, self.max_sequence), dtype=np.float32)
+        order_maps = np.zeros((*self.target_image_shape, self.max_sequence), dtype=np.float32)
 
         assert boxes.shape[0] <= self.max_sequence, \
             f"the train/validate label text length[{len(image_labels.labels)}] must be less than pre-defined max sequence length[{self.max_sequence}]"
@@ -78,9 +78,9 @@ class LabelGenerater():
 
             self.render_order_segment(order_segments[:, :, i], Y_hat_k, threshold=self.ζ)
             localization_map = self.render_localization_map(localization_map, Y_hat_k)
-            #order_maps = order_segments * localization_map[:, :, np.newaxis]
+            order_maps = order_segments * localization_map[:, :, np.newaxis]
 
-        return character_segment, order_segments, localization_map
+        return character_segment, order_segments, order_maps, localization_map
 
     # 围绕中心点做一个高斯分布，但是由于每个点的概率值过小，所以要做一个归一化,使得每个点的值归一化到[0,1]之间
     # Make a gaussian distribution with the center, and do normalization
