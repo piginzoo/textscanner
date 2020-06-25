@@ -49,7 +49,7 @@ class VisualCallback(Callback):
                 self.draw_image(writer, f"pred_order_maps_{i}_{j}", image, pred_order_maps[i][:, :, j])
 
         writer.close()
-
+        logger.debug("Visual Debugging done!")
         return
 
     """
