@@ -24,8 +24,8 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 RUN apt install tzdata
 RUN rm /etc/localtime
 RUN ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-RUN echo 'Asia/Shanghai' >/etc/timezone
+RUN echo "Asia/Shanghai">/etc/timezone
 
 # we cannot find tf2.2.0 image, so we use tf2.1 to upgrade
-# RUN pip install tensorflow-gpu==2.2.0
-# RUN pip install tensorboard_plugin_profile
+RUN pip install tensorflow-gpu==2.2.0
+RUN pip install tensorboard_plugin_profile

@@ -1,22 +1,24 @@
-This is the [Text Scanner paper](https://arxiv.org/abs/1912.12422) implementation code.
+# Branch Explanation
+The branch try to solve the GPU OOM issue.
 
-About the paper unstanding, please read about it at my blog : [TextScanner的一些研究](http://www.piginzoo.com/machine-learning/2020/04/14/ocr-fa-textscanner) 
+Below are the modification to avoid OOM:
+- Implement the training docker image for tf2.2.x training & profile
+- Remove create Word Formulation in model
+- Create a small [English+Num charsets](config/charset.alphabeta.txt) to test the code logic
+- Implement the loss & metric by dict style(but only supported by TF2.2.x, TF2.1.x not support)
+- Try to debug batch size for OOM, finally got proper size: 7.
+- Try to profile by tensorboard, found only tf2.2.x support
 
-# implementation list(ongoing...)
-- [X] implement the network
-- [ ] implement the mutual-supervision mechanism
-- [X] implement loss function
-- [X] create the character annotation GT, and prepare none character level GT
-- [X] implement train code
-- [ ] implement evaluation code
-- [X] train the model
+# Some Details
 
-# developing logs
-- 2020.4.24 create the project and implement the skeleton of the project
-- 2020.4.30 implement the network code, and finish the GT generator and loss function
-- 2020.5.12 the network works now after hundreds of trouble-shootings,TF2.0/tk.keras is full of pit
+1. I don't wang to update the server GPU driver, CUDA and cuDNN version. 
+So, I made my training docker image inherit from tensorflow/tensorflow:2.1.0-gpu-py3.
+But I do need tf2.2.x, but there is no available image for 2.2.x, 
+So, I build one basing on tf2.2.1 image.
 
+2.By tf2.2.x, I can profile the training process, but unfortunately, 
+I still cannot find the GPU memeory usage context information.
 
-# implement details
-
-## 
+3.I found the model can return dict style result, 
+which can later be used for loss and metrics, and can make the code more readable, 
+but it need the tf2.2.x, that is the reason I made the tf2.2.x training docker image.  
