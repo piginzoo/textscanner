@@ -40,10 +40,10 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
     #      如果你规定，那就得比它小才可以，另外还要验证，是不是把每个批次的结果做平均，还是算整体的
     python -m main.train \
     --name=textscanner \
-    --epochs=10 \
+    --epochs=5 \
     --debug \
-    --debug_step=100 \
-    --steps_per_epoch=33 \
+    --debug_step=10 \
+    --steps_per_epoch=10 \
     --batch=3 \
     --retrain=True \
     --learning_rate=0.001 \
