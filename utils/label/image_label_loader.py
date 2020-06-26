@@ -62,7 +62,8 @@ class ImageLabelLoader:
         # return images, [batch_cs, batch_os, batch_lm] #, labels]
         return images, {'character_segmentation': batch_cs,
                         'order_map': batch_om,
-                        'localization_map': batch_lm}
+                        'localization_map': batch_lm,
+                        'word_formation':labels}
 
     def load_one_image_label(self, image_path, label_path):
 

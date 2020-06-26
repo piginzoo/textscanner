@@ -1,22 +1,38 @@
-This is the [Text Scanner paper](https://arxiv.org/abs/1912.12422) implementation code.
+# Branch explanation
 
-About the paper unstanding, please read about it at my blog : [TextScanner的一些研究](http://www.piginzoo.com/machine-learning/2020/04/14/ocr-fa-textscanner) 
+This branch implements the Word_Formulation as single layer, 
+which will caculate the possibility of all words by caculation of "Character Segmentation" and "Order Maps".
 
-# implementation list(ongoing...)
-- [X] implement the network
-- [ ] implement the mutual-supervision mechanism
-- [X] implement loss function
-- [X] create the character annotation GT, and prepare none character level GT
-- [X] implement train code
-- [ ] implement evaluation code
-- [X] train the model
+But this branch can not run in my GPU server, for it will bring OOM of GPU when I try to train it by a charsets of 4100 classes.
 
-# developing logs
-- 2020.4.24 create the project and implement the skeleton of the project
-- 2020.4.30 implement the network code, and finish the GT generator and loss function
-- 2020.5.12 the network works now after hundreds of trouble-shootings,TF2.0/tk.keras is full of pit
+But, for small charset, it is a good way to handle the training.
 
+So, if you want to train English or Number charsets, please use it.
 
-# implement details
+## details
 
-## 
+The model has a extra layer named "Word Formulation", so model will return word formuation. 
+Then, it will be used for calculation for the accuracy with the labels,
+which return from sequence:
+
+```text
+class ImageLabelLoader:
+...
+return images, {'character_segmentation': batch_cs,
+                'order_map': batch_om,
+                'localization_map': batch_lm,
+                'word_formation':labels} <---- see, the labels
+-----
+class TextScannerModel:
+...
+metrics = {'word_formation': ['categorical_accuracy']}
+...
+def call(self, inputs, training=None):
+    ...
+    return {'character_segmentation': character_segmentation,
+            'order_map': order_map,
+            'localization_map': localization_map,
+            'word_formation': word_formation}
+```  
+
+2020.6 piginzoo
