@@ -1,5 +1,5 @@
 from utils.label.label_maker import LabelGenerater
-from utils.data_util import ImageLabelLoader
+from utils.label.image_label_loader import ImageLabelLoader
 from tensorflow.keras.utils import Sequence
 from utils.label import label_utils
 import logging, math

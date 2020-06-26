@@ -5,7 +5,7 @@ from tensorflow.keras.layers import GRU
 from tensorflow.keras.layers import Permute
 from tensorflow.keras.layers import Softmax
 from tensorflow.keras.layers import Activation
-from utils.util import call_debug as _call
+from utils.logger import call_debug as _call
 import tensorflow as tf
 
 

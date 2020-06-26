@@ -1,6 +1,6 @@
 import tensorflow as tf
 from utils.label import label_utils
-from utils.data_util import ImageLabelLoader
+from utils.label.image_label_loader import ImageLabelLoader
 
 
 """

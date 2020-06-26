@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import Layer
 from tensorflow.keras.layers import Convolution2D
 from tensorflow.keras.layers import Softmax
-from utils.util import call_debug as _call
+from utils.logger import call_debug as _call
 
 
 class ClassBranchLayer(Layer):

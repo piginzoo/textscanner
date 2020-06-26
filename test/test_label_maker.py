@@ -73,7 +73,7 @@ def test_make_label(image_path, charset):
     generator = LabelGenerater(conf.MAX_SEQUENCE,
                                target_image_shape=(conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH),
                                charset=charset)
-    character_segment, order_maps, localization_map = generator.process(image_label)
+    character_segment, order_segments, order_maps, localization_map = generator.process(image_label)
     time_eclapse_makelabel = time.time() - start
 
     if not os.path.exists(debug_dir): os.makedirs(debug_dir)

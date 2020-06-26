@@ -4,7 +4,7 @@ from network.layers.word_formation_layer import WordFormation
 from tensorflow.keras.applications.resnet import ResNet50
 from network.layers.fcn_layer import FCNLayer
 from tensorflow.keras.optimizers import Adam
-from utils.util import call_debug as _call
+from utils.logger import call_debug as _call
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input

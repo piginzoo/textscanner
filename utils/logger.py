@@ -5,22 +5,8 @@ from logging import handlers
 import datetime
 import tensorflow as tf
 
-Tensor_DEBUG = "None"  # tensor | shape | None
-
-
-def _p(tensor, msg):
-    if Tensor_DEBUG == "tensor":
-        dt = datetime.datetime.now().strftime('[ TF_DEBUG ] : %m-%d %H:%M:%S: ')
-        msg = dt + msg
-        tensor = tf.Print(tensor, [tf.shape(tensor)], msg, summarize=100)
-        return tf.Print(tensor, [tensor], "", summarize=100)
-
-    if Tensor_DEBUG == "shape":
-        dt = datetime.datetime.now().strftime('[ TF_DEBUG ] : %m-%d %H:%M:%S: ')
-        msg = dt + msg
-        return tf.Print(tensor, [tf.shape(tensor)], msg, summarize=100)
-
-    return tensor
+import conf
+from utils.util import logger
 
 
 def init(level=logging.DEBUG, when="D", backup=7,
@@ -44,3 +30,31 @@ def init(level=logging.DEBUG, when="D", backup=7,
         handler.setLevel(level)
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+
+
+def call_debug(layer, *input):
+    if not conf.DEBUG:
+        return layer(*input)
+
+    layer_name = "Unknown"
+    if hasattr(layer, "__name__"):
+        layer_name = layer.__name__
+    if hasattr(layer, "name"):
+        layer_name = layer.name
+
+    input_shape = "Unknown"
+    if type(input[0]) == list:
+        input_shape = str([str(i.shape) for i in input[0]])
+    if hasattr(input[0], "shape"):
+        input_shape = str(input[0].shape)
+
+    assert callable(layer), "layer[" + layer_name + "] is callable"
+    output = layer(*input)
+
+    if type(output) == list or type(output) == tuple:
+        output_shape = str([str(o.shape) for o in output])
+    else:
+        output_shape = str(output.shape)
+
+    logger.debug("Layer: {:25s}    {:30s} => {:30s}".format(layer_name, input_shape, output_shape))
+    return output
