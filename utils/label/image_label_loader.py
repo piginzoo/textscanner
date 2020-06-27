@@ -7,18 +7,35 @@ import numpy as np
 import cv2, os
 import logging
 import conf
+import time
 
 logger = logging.getLogger(__name__)
 
 
 class ImageLabelLoader:
 
-    def __init__(self, target_image_shape, charsets, label_format, max_squence):
+    def __init__(self, name, label_dir, target_image_shape, charsets, label_format, max_squence):
+        self.name = name
         self.charsets = charsets
         self.label_format = label_format
         self.target_image_shape = target_image_shape
         self.max_sequence = max_squence
         self.label_generator = LabelGenerater(max_squence, self.target_image_shape, charsets)
+        self.initialize(label_dir)
+
+
+    def initialize(self, label_dir):
+        logger.info("[%s]begin to load image/labels", self.name)
+        start_time = time.time()
+        self.data_list = label_utils.load_labels(label_dir)
+        if len(self.data_list) == 0:
+            msg = f"[{self.name}] 图像和标签加载失败[目录：{label_dir}]，0条！"
+            raise ValueError(msg)
+        logger.info("[%s]loaded [%d] labels,elapsed time [%d]s", self.name, len(self.data_list),
+                    (time.time() - start_time))
+
+    def shuffle(self):
+        np.random.shuffle(self.data_list)
 
     def load_image_label(self, batch_data_list):
         images = []
@@ -26,32 +43,30 @@ class ImageLabelLoader:
         batch_os = []  # Order Segment
         batch_om = []  # Order Map
         batch_lm = []  # Localization Map
-        label_text = []# label text
+        label_ids = [] # label ids[[21,24,256,2,121],[...],...]
         for image_path, label_path in batch_data_list:
 
             if not os.path.exists(image_path):
                 logger.warning("Image [%s] does not exist", image_path)
                 continue
 
-            character_segment, localization_map, order_sgementation, order_maps, image, label_ids = \
+            character_segment, localization_map, order_sgementation, order_maps, image, label_id = \
                 self.load_one_image_label(image_path, label_path)
 
+            images.append(image)
             batch_cs.append(character_segment)
             batch_os.append(order_sgementation)
             batch_lm.append(localization_map)
-            images.append(image)
             batch_om.append(order_maps)
+            label_ids.append(label_id)
 
         images = np.array(images, np.float32)
-        label_text.append(label_ids)
+        label_ids = pad_sequences(label_ids, maxlen=conf.MAX_SEQUENCE, padding="post", value=0)
+        label_ids = np.array(label_ids)
         batch_cs = np.array(batch_cs)
         batch_om = np.array(batch_om)
         batch_os = np.array(batch_os)
         batch_lm = np.array(batch_lm)
-
-        # text one hot array
-        labels = pad_sequences(label_text, maxlen=conf.MAX_SEQUENCE, padding="post", value=0)
-        labels = to_categorical(labels, num_classes=len(self.charsets))
 
         # logger.debug("Loaded images:  %r", images.shape)
         # logger.debug("Loaded batch_cs:%r", batch_cs.shape)
@@ -59,10 +74,10 @@ class ImageLabelLoader:
         # logger.debug("Loaded batch_lm:%r", batch_lm.shape)
         # logger.debug("[%s] loaded %d data", name, len(images))
 
-        # return images, [batch_cs, batch_os, batch_lm] #, labels]
         return images, {'character_segmentation': batch_cs,
                         'order_map': batch_om,
-                        'localization_map': batch_lm}
+                        'localization_map': batch_lm,
+                        'label_ids': label_ids}
 
     def load_one_image_label(self, image_path, label_path):
 

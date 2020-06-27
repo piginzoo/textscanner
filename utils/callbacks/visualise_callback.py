@@ -12,17 +12,27 @@ logger = logging.getLogger(__name__)
 
 
 class VisualCallback(Callback):
+    """
+        Visualization the training process for debugging
+    """
+
+    def __init__(self, tag, tboard_dir, image_loader, debug_step):
+        super().__init__()
+        self.tag = tag
+        self.debug_step = debug_step
+        self.tboard_dir = tboard_dir
+        self.font = ImageFont.truetype("data/fonts/simsun.ttc", 10)  # 设置字体
+        self.image_loader = image_loader
+
     def on_batch_end(self, batch, logs=None):
 
-        if batch % self.args.debug_step != 0: return
+        if batch % self.debug_step != 0: return
 
         logger.debug("Try to dump the debug images to tboard")
 
-        # self.validation_data is framework pre-defined variable
-        np.random.shuffle(self.validate_sequence.data_list)
-        data = self.validate_sequence.data_list[:conf.VISUAL_IMAGES]  # hard code 9 images
-        # images, labels: [batch_cs,batch_om,batch_lm)]
-        images, labels = self.validate_sequence.image_loader.load_image_label(data)
+        self.image_loader.shuffle()
+        data = self.image_loader.data_list[:conf.VISUAL_IMAGES]  # hard code 9 images
+        images, labels = self.image_loader.load_image_label(data)
 
         writer = tf.summary.create_file_writer(self.tboard_dir)
 
@@ -52,18 +62,6 @@ class VisualCallback(Callback):
         logger.debug("Visual Debugging done!")
         return
 
-    """
-        Visualization the training process for debugging
-    """
-
-    def __init__(self, tag, tboard_dir, charset, args, validate_sequence):
-        super().__init__()
-        self.tag = tag
-        self.args = args
-        self.tboard_dir = tboard_dir
-        self.charset = charset
-        self.font = ImageFont.truetype("data/fonts/simsun.ttc", 10)  # 设置字体
-        self.validate_sequence = validate_sequence
 
     def draw_image(self, writer, name, image, gt_pred, text=None, highlight=False):
 

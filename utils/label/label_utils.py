@@ -65,11 +65,6 @@ def get_charset(charset_file):
     return charset
 
 
-# 字符串
-def caculate_accuracy(preds, labels):
-    result = [p == l for p, l in zip(preds, labels)]
-    return np.array(result).mean()
-
 
 # 从文件中读取样本路径和标签值
 # >data/train/21.png )beiji
@@ -116,84 +111,6 @@ def load_labels(label_dir):
             image_labels.append([image_path, label_path])
 
     return image_labels
-
-
-# !!! 此方法已废弃，加载目前采用fit_generator的multiprocess=True+Work=10的方式，不用自己去创建多进程了
-# 从文件中读取样本路径和标签值，并放入分箱中，为了是每个箱子多进程加载
-# >data/train/21.png )beiji
-# >data/train/22.png 市平谷区金海
-# >data/train/23.png 江中路53
-# bin_num:分箱个数
-def read_data_file_bucket(label_file_name, process_num):
-    f = open(label_file_name, 'r', encoding="utf-8")
-    data = []
-    for line in f:
-        filename, _, label = line[:-1].partition(' ')  # partition函数只读取第一次出现的标志，分为左右两个部分,[:-1]去掉回车
-        # print(filename,":",label)
-        data.append((filename, label))
-    f.close()
-
-    logger.debug("从[%s]中读取了所有原始数据，一共[%d]行", label_file_name, len(data))
-
-    # chunks函数用于分箱
-    def chunks(l, step):
-        for i in range(0, len(l), step):
-            yield l[i:i + step]
-
-    # print(len(data),process_num)
-    data_list = list(chunks(data, len(data) // process_num))
-    # print(data_list)
-    logger.debug("所有数据[%d]条，被分箱到[%d]中", len(data), process_num)
-
-    return data_list
-
-
-def process_lines(charsets, data):
-    result = []
-    for d in data:
-        # print(d)
-        file, label = d
-        filename, labels_index = process_line(file, label, charsets)
-        if filename is None: continue
-        if labels_index is None: continue
-        result.append((filename, labels_index))
-    return result
-
-
-# 处理每一行数据：data/train/22.png 市平谷区金海
-# 返回的是filename,labels_index
-def process_line(filename, label, charsets):
-    if not os.path.exists(filename):
-        logger.warning("标签文件[%s]不存在啊", filename)
-        return None, None
-
-    processed_label = process_unknown_charactors(label, charsets)
-    if processed_label is None or len(processed_label) == 0:
-        logger.error("解析标签字符串失败，忽略此样本：[%s]", label)
-        return None, None
-
-    labels_index = convert_labels_to_ids(processed_label, charsets)
-    if labels_index is None:
-        return None, None
-
-    return filename, labels_index
-
-
-# labels是所有的标签的数组['我爱北京','我爱天安门',...,'他说的法定']
-# characters:词表
-def convert_to_id(labels, characters):
-    _lables = []
-    for one in labels:
-        _lables.append([characters.index(l) for l in one])
-
-    return _lables
-
-
-def process_unknown_charactors_all(all_sentence, dict, replace_char=None):
-    result = []
-    for sentence in all_sentence:
-        result.append(process_unknown_charactors(sentence, dict, replace_char))
-    return result
 
 
 # 1.处理一些“宽”字符,替换成词表里的

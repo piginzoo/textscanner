@@ -1,7 +1,9 @@
-from tensorflow.keras.callbacks import TensorBoard
+from utils.callbacks.visualise_callback import VisualCallback
+from utils.callbacks.metrics_callback import MetricsCallback
+from utils.label.image_label_loader import ImageLabelLoader
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import EarlyStopping
-from utils.visualise_callback import VisualCallback
+from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import load_model
 from network.model import TextScannerModel
 from utils.sequence import SequenceData
@@ -25,24 +27,12 @@ def train(args):
 
     model = TextScannerModel(conf, charset)
 
-    train_sequence = SequenceData(name="Train",
-                                  label_dir=args.train_label_dir,
-                                  label_file=args.train_label_file,
-                                  charsets=charset,
-                                  conf=conf,
-                                  args=args,
-                                  batch_size=args.batch)
-    valid_sequence = SequenceData(name="Validate",
-                                  label_dir=args.validate_label_dir,
-                                  label_file=args.validate_label_file,
-                                  charsets=charset,
-                                  conf=conf,
-                                  args=args,
-                                  batch_size=args.validation_batch)
+    target_image_shape = (conf.INPUT_IMAGE_HEIGHT, conf.INPUT_IMAGE_WIDTH)
+    train_image_loader = ImageLabelLoader("Train", args.train_label_dir, target_image_shape, charset, "plaintext", conf.MAX_SEQUENCE)
+    train_sequence = SequenceData(image_loader=train_image_loader, batch_size=args.batch)
 
     timestamp = util.timestamp_s()
     tb_log_name = os.path.join(conf.DIR_TBOARD, timestamp)
-    # checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}-acc{accuracy:.4f}-val{val_accuracy:.4f}.hdf5"
     checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}.hdf5"
 
     # 如果checkpoint文件存在，就加载之
@@ -60,10 +50,12 @@ def train(args):
     logger.info("Train begin：")
 
     # update tboard scalar per 100 batches, profile no. 2 batch of each epoch
+    validate_image_loader = ImageLabelLoader("Validation", args.validate_label_dir, target_image_shape, charset, "plaintext", conf.MAX_SEQUENCE)
     tboard = TensorBoard(log_dir=tb_log_name, update_freq=conf.UPDATE_FREQ, profile_batch=0, histogram_freq=0)
     early_stop = EarlyStopping(patience=args.early_stop, verbose=1, mode='max')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
-    visibility_debug = VisualCallback('Attetnon Visibility', tb_log_name, charset, args, valid_sequence)
+    visibility_debug = VisualCallback('Attetnon Visibility', tb_log_name, validate_image_loader, args.debug_step)
+    metrics = MetricsCallback(validate_image_loader)
 
     model.comile_model()
 
@@ -72,10 +64,8 @@ def train(args):
         steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
         epochs=args.epochs,
         workers=args.workers,  # 同时启动多少个进程加载
-        callbacks=[tboard, checkpoint, early_stop, visibility_debug],
+        callbacks=[tboard, checkpoint, early_stop, visibility_debug, metrics],
         use_multiprocessing=True,
-        validation_data=valid_sequence,
-        validation_steps=args.validation_steps,
         verbose=2)
 
     logger.info("Train end!")
