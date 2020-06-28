@@ -38,18 +38,22 @@ class MetricsCallback(Callback):
         all_pred_ids = []
         all_label_ids = []
         for i in range(self.steps):
-            data = all_data[i * self.batch: (i + 1) * self.batch]
-            images, labels = self.image_loader.load_image_label(data)
-            pred = self.model(images)  # return [character_segment, order_map, localization_map]
+            try:
+                data = all_data[i * self.batch: (i + 1) * self.batch]
+                images, labels = self.image_loader.load_image_label(data)
+                pred = self.model(images)  # return [character_segment, order_map, localization_map]
 
-            pred_character_segments = pred['character_segmentation']  # np.argmax(pred['character_segmentation'], axis=-1)
-            pred_order_maps = pred['order_map']
-            # logger.debug("G:",pred_character_segments.shape)
-            # logger.debug("H:",pred_order_maps.shape)
-            pred_ids = word_formulation.word_formulate(G=pred_character_segments, H=pred_order_maps)
-            label_ids = labels['label_ids']
-            all_pred_ids.append(pred_ids)
-            all_label_ids.append(label_ids)
+                pred_character_segments = pred['character_segmentation']  # np.argmax(pred['character_segmentation'], axis=-1)
+                pred_order_maps = pred['order_map']
+                # logger.debug("G:",pred_character_segments.shape)
+                # logger.debug("H:",pred_order_maps.shape)
+                pred_ids = word_formulation.word_formulate(G=pred_character_segments, H=pred_order_maps)
+                label_ids = labels['label_ids']
+                all_pred_ids.append(pred_ids)
+                all_label_ids.append(label_ids)
+            except Exception as e:
+                logger.exception("Error during validating")
+
         all_pred_ids = np.stack(all_pred_ids)
         all_label_ids = np.stack(all_label_ids)
 
