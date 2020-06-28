@@ -1,5 +1,6 @@
 from tensorflow.keras.callbacks import Callback
 from utils import word_formulation
+import tensorflow as tf
 from utils import util
 import numpy as np
 import logging
@@ -15,12 +16,15 @@ class MetricsCallback(Callback):
     It will use CPU instead of GPU,
     """
 
-    def __init__(self, image_loader, steps, batch):
+    def __init__(self, image_loader, steps, batch, tb_dir):
         self.name = "Validation"
         self.best_accuracy = 0
         self.image_loader = image_loader
         self.batch = batch
         self.steps = steps
+        self.file_writer = tf.summary.create_file_writer(tb_dir + "/metrics")
+
+
 
     def on_epoch_end(self, epoch, logs=None):
 
@@ -54,18 +58,21 @@ class MetricsCallback(Callback):
         end = time.time()
         logger.info("[Validation] end: epoch: #%d, validation size: %d", epoch, len(all_data))
         logger.info("[Validation] Accuracy: %f , time elapse: %s seconds", acc, (end - start))
+        tf.summary.scalar('Epoch Accuracy', data=acc, step=epoch)
 
         if (acc > self.best_accuracy):
             logger.info("The current accuracy[%f] is better than ever[%f]", acc, self.best_accuracy)
             self.best_accuracy = acc
             self._save_model(epoch, acc)
 
+
+
         return
 
     def _save_model(self, epoch, acc):
         timestamp = util.timestamp_s()
-        model_path = f"${conf.DIR_MODEL}/model-${timestamp}-epoch${epoch}-acc${acc}.hdf5"
-        self.model.save(model_path)
+        model_path = f"{conf.DIR_MODEL}/model-{timestamp}-epoch{epoch}-acc{acc}.pb"
+        self.model.save(model_path, save_format='tf')
         logger.info("The current model was saved : %s", model_path)
 
     def _accuracy(self, pred_ids, label_ids):

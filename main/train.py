@@ -57,7 +57,8 @@ def train(args):
     visibility_debug = VisualCallback('Attetnon Visibility', tb_log_name, validate_image_loader, args.debug_step)
     metrics = MetricsCallback(image_loader=validate_image_loader,
                               steps=args.validation_batch * args.validation_steps,
-                              batch=args.validation_batch)
+                              batch=args.validation_batch,
+                              tb_dir=tb_log_name)
 
     model.comile_model()
 

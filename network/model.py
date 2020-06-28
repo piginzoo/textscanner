@@ -56,9 +56,14 @@ class TextScannerModel(Model):
         loss_weights = {'character_segmentation': 1,
                         'order_map': 10,
                         'localization_map': 10}
+        metrics = {'character_segmentation':['categorical_accuracy'],
+                   'order_map':['categorical_accuracy'],
+                   'localization_map':['binary_accuracy']}
+
         self.compile(Adam(),
                      loss=losses,
                      loss_weights=loss_weights,
+                     metrics=metrics,
                      run_eagerly=True)
 
         self.build(self.input_image.shape)  # no build, no summary
