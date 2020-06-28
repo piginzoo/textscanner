@@ -80,6 +80,7 @@ python -m main.train \
     --name=textscanner \
     --steps_per_epoch=2000 \
     --epochs=5000000 \
+    --debug \
     --debug_step=1000 \
     --batch=32 \
     --retrain=False \
