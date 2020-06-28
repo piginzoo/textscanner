@@ -1,7 +1,6 @@
 #!/bin/bash
 echo "Begin to train ..."
 Date=$(date +%Y%m%d%H%M)
-export CUDA_VISIBLE_DEVICES=0
 
 if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
 
@@ -17,7 +16,7 @@ if [ "$1" == "console" ] || [ "$1" == "debug" ]; then
 
     echo "In DEBUG mode ..."
     python -m main.train \
-    --name=textscanner \
+    --name=textscanner_train \
     --epochs=3 \
     --debug \
     --debug_step=3 \
@@ -40,20 +39,23 @@ fi
 
 if [ "$1" = "stop" ]; then
     echo "Stop Training!"
-    ps aux|grep python|grep name=textscanner|awk '{print $2}'|xargs kill -9
+    ps aux|grep python|grep name=textscanner_train|awk '{print $2}'|xargs kill -9
     exit
 fi
 
-if [ "$1" != "" ]; then
-    echo "User define GPU #$1"
-    export CUDA_VISIBLE_DEVICES=$1
+if [ "$1" == "" ]; then
+    echo "Usage: bin/train.sh #GPU <console>"
+    exit
 fi
+
+echo "User define GPU #$1"
+export CUDA_VISIBLE_DEVICES=$1
 
 echo "Production Mode ..."
 echo "Using #$CUDA_VISIBLE_DEVICES GPU"
 
 python -m main.train \
-    --name=textscanner \
+    --name=textscanner_train \
     --steps_per_epoch=2000 \
     --epochs=5000000 \
     --debug_step=1000 \
