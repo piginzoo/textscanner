@@ -15,6 +15,8 @@ def word_formulate(G, H):
         Order Map, [B,H,W,S:30]
     :return
         list, contain char ids, and if 0 appear, the process break, 0 means background
+
+    notice: the calculation will be in batch.
     """
 
     ids = []
@@ -24,14 +26,14 @@ def word_formulate(G, H):
         # H_k是第k个字符对应的正态分布
         # (G*H_k) ===> [H,W,4100]
         # sum = \sum(G*H_k) ===> [4100]
-        _H_k = H[:,:,:,i]
-        _H_k = H_k[:, :, np.newaxis]  # [H,W] => [H,W,1]
+        _H_k = H[:, :, :, i]
+        _H_k = _H_k[:, :, :, np.newaxis]  # [B,H,W] => [B,H,W,1]
         GH_k = (G * _H_k)
-        sum = np.sum(GH_k, axis=(0, 1))
-        id = sum.argmax()
-        if id == 0: break
+        sum = np.sum(GH_k, axis=(1,2))
+        id = sum.argmax(axis=-1)
         ids.append(id)
-
+    ids = np.array(ids)
+    ids = ids.transpose()
     return ids
 
 
@@ -46,14 +48,21 @@ def process(character_segment_G, charset, image_label, order_maps_H):
     """
     start = time.time()
     G = np.eye(len(charset))[character_segment_G]  # eye是对角阵生成函数，通过他，完成categorical one hot化
-    print("G:",G.shape)
-    print("H:",order_maps_H.shape)
-    ids = word_formulate(G, order_maps_H)
-    pred = label_utils.id2str(ids, charset)
+
+    # make batch
+    G = np.array([G])
+    H = np.array([order_maps_H])
+    print("G:", G.shape)
+    print("H:", order_maps_H.shape)
+
+    ids = word_formulate(G, H)
+    print("Pred ids:",ids.shape)
+    pred = label_utils.id2str(ids[0], charset)
+    pred = pred.strip()
+
     if image_label.label != pred:
         print("Predict:[%s]" % pred)
         print("Label  :[%s]" % image_label.label)
 
     t = time.time() - start
-    print("Word Formulation time: %f" % t)
     return t

@@ -54,7 +54,7 @@ def test_make_label(image_path, charset):
     dir, image_name = os.path.split(image_path)
     name, ext = os.path.splitext(image_name)
     if ext != ".png" and ext != ".jpg":
-        print("[ERROR] 不是图像：", image_name)
+        # print("[ERROR] 不是图像：", image_name)
         return None,None
     json_path = os.path.join(dir, name + ".txt")
 
@@ -81,10 +81,10 @@ def test_make_label(image_path, charset):
     save_bbox_image(image_label, os.path.join(debug_dir,f"{name}.jpg"))
     save_image(os.path.join(debug_dir, f"{name}_character_segment.jpg"), character_segment, image, True)
     save_image(os.path.join(debug_dir, f"{name}_localization_map.jpg"), localization_map, image)
-    order_maps = order_maps.transpose(2, 0, 1)  # (H,W,S) => (S,H,W)
+    # order_maps = order_maps.transpose(2, 0, 1)  # (H,W,S) => (S,H,W)
 
-    for i, order_map in enumerate(order_maps):
-        save_image(os.path.join(debug_dir, f"{name}_order_map_{i + 1}.jpg"), order_map, image)
+    for i in range(order_maps.shape[-1]):# [H,W,S]
+        save_image(os.path.join(debug_dir, f"{name}_order_map_{i + 1}.jpg"), order_maps[:,:,i], image)
 
     # 尝试还原结果，看看是不是可以在复原判断出原有的汉字，
     # 主要是验证这样识别是不是一个合理的方法（通过标注来尝试，标注理论上应该是最容易得到正确字符的）
