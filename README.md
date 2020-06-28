@@ -22,6 +22,7 @@ About the paper unstanding, please read about it at my blog : [TextScanner的一
 Currently I work on this branch mainly.<------*
 - [b_wordform_in_model](https://github.com/piginzoo/textscanner/tree/b_wordform_in_model): Implement word formulation as internal layer of model, 
 this branch did not consider the OOM issue(reduce the charsets size), focus on the elegance of code implementation. 
+- [b_multiple_gpus_train](https://github.com/piginzoo/textscanner/tree/b_multiple_gpus_train): implements the multiple gpus training
 
 # implement details
 Developing detail can be tracked by my [textscanner implementation issues](https://www.notion.so/piginzoospace/Textscanner-254a700668714f0d811afe2ab8124046).
