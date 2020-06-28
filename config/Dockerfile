@@ -11,7 +11,8 @@ RUN apt-get update
 RUN apt-get install -y libsm6
 RUN apt-get install -y libxrender1
 RUN apt-get install -y libxext-dev
-
+RUN apt-get install -y vim
+RUN apt-get install -y net-tools
 
 RUN mkdir /root/.pip
 ADD config/pip.conf /root/.pip
