@@ -57,30 +57,26 @@ def train(args):
 
     timestamp = util.timestamp_s()
     tb_log_name = os.path.join(conf.DIR_TBOARD, timestamp)
-    checkpoint_path = conf.DIR_MODEL + "/model-" + timestamp + "-epoch{epoch:03d}.hdf5"
-
-    logger.info("Train begin：")
 
     # update tboard scalar per 100 batches, profile no. 2 batch of each epoch
-    validate_image_loader = ImageLabelLoader("Validation", args.validate_label_dir, target_image_shape, charset,
-                                             "plaintext", conf.MAX_SEQUENCE)
+    validate_image_loader = ImageLabelLoader("Validation", args.validate_label_dir, target_image_shape, charset,"plaintext", conf.MAX_SEQUENCE)
     tboard = TensorBoard(log_dir=tb_log_name, update_freq=conf.UPDATE_FREQ, profile_batch=0, histogram_freq=0)
-    early_stop = EarlyStopping(patience=args.early_stop, verbose=1, mode='max')
-    checkpoint = ModelCheckpoint(filepath=checkpoint_path, verbose=1, mode='max')
+    early_stop = EarlyStopping(patience=args.early_stop, monitor="loss" verbose=1, mode='max')
     visibility_debug = VisualCallback('Attetnon Visibility', tb_log_name, validate_image_loader, args.debug_step)
     metrics = MetricsCallback(image_loader=validate_image_loader,
                               steps=args.validation_batch * args.validation_steps,
                               batch=args.validation_batch,
                               tb_dir=tb_log_name)
+
+    logger.info("Train begin：")
     model.fit(
         x=train_sequence,
         steps_per_epoch=args.steps_per_epoch,  # 其实应该是用len(train_sequence)，但是这样太慢了，所以，我规定用一个比较小的数，比如1000
         epochs=args.epochs,
         workers=args.workers,  # 同时启动多少个进程加载
-        callbacks=[tboard, checkpoint, early_stop, visibility_debug, metrics],
+        callbacks=[tboard, early_stop, visibility_debug, metrics],
         use_multiprocessing=True,
         verbose=2)
-
     logger.info("Train end!")
 
     model_path = conf.DIR_MODEL + "/textscanner-{}-last.pb".format(util.timestamp_s())
