@@ -41,6 +41,9 @@ class MetricsCallback(Callback):
             try:
                 data = all_data[i * self.batch: (i + 1) * self.batch]
                 images, labels = self.image_loader.load_image_label(data)
+
+                print("============================")
+                print(images.shape)
                 pred = self.model(images)  # return [character_segment, order_map, localization_map]
 
                 pred_character_segments = pred['character_segmentation']  # np.argmax(pred['character_segmentation'], axis=-1)

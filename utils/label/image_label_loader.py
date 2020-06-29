@@ -85,7 +85,7 @@ class ImageLabelLoader:
         data = label_file.readlines()
         label_file.close()
         if conf.DEBUG: logger.debug("Loaded label file [%s] %d lines", label_path, len(data))
-        target_size = (self.target_image_shape[1], self.target_image_shape[0])
+        target_size = (self.target_image_shape[1], self.target_image_shape[0]) # size(W,H)
         # inside it, the bboxes size will be adjust
         il = ImageLabel(cv2.imread(image_path), data, self.label_format, target_size=target_size)
 
