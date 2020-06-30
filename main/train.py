@@ -54,7 +54,7 @@ def train(args):
     early_stop = EarlyStopping(patience=args.early_stop, monitor="loss", verbose=1, mode='max')
     visibility_debug = VisualCallback('Attetnon Visibility', tb_log_name, validate_image_loader, args.debug_step)
     metrics = MetricsCallback(image_loader=validate_image_loader,
-                              steps=args.validation_batch * args.validation_steps,
+                              steps=args.validation_steps,
                               batch=args.validation_batch,
                               tb_dir=tb_log_name)
 

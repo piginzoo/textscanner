@@ -86,7 +86,7 @@ python -m main.train \
     --retrain=False \
     --learning_rate=0.001 \
     --validation_batch=32 \
-    --validation_steps=4 \
+    --validation_steps=8 \
     --train_label_dir=data/train.english \
     --validate_label_dir=data/validate.english \
     --workers=10 \
