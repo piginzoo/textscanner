@@ -54,8 +54,12 @@ class VisualCallback(Callback):
             self.draw_image(writer, f"label_localization_map_{i}", image, label_localization_maps[i])
             self.draw_image(writer, f"pred_localization_map_{i}", image, pred_localization_maps[i])
             for j in range(label_order_maps[i].shape[-1]):
+                # if all 0, do not create image
+                if not np.any(label_order_maps[i]):continue
                 self.draw_image(writer, f"label_order_maps_{i}_{j}", image, label_order_maps[i][:, :, j])
             for j in range(pred_order_maps[i].shape[-1]):
+                # if all 0, do not create image
+                if not np.any(pred_order_maps[i]): continue
                 self.draw_image(writer, f"pred_order_maps_{i}_{j}", image, pred_order_maps[i][:, :, j])
 
         writer.close()
@@ -63,7 +67,7 @@ class VisualCallback(Callback):
         return
 
 
-    def draw_image(self, writer, name, image, gt_pred, text=None, highlight=False):
+    def draw_image(self, writer, name, image, gt_pred, highlight=False):
 
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
@@ -80,7 +84,7 @@ class VisualCallback(Callback):
 
         # we use pyplot, because it can generator colorful image, not gray
         gt_pred = np.squeeze(gt_pred)
-        image = np.ubyte(0.5 * gt_pred + 0.5 * image)  # merge the bbox mask and original image
+        image = np.ubyte(0.3 * gt_pred + 0.7 * image)  # merge the bbox mask and original image
         plt.clf()  # we use plt, which can help convert GRAY image to colorful
         buffer = io.BytesIO()
         plt.imsave(buffer, image, format='jpg')  # dump the image to buffer

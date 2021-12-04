@@ -1,7 +1,6 @@
 from utils.callbacks.visualise_callback import VisualCallback
 from utils.callbacks.metrics_callback import MetricsCallback
 from utils.label.image_label_loader import ImageLabelLoader
-from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import load_model

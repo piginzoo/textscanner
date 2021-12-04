@@ -42,7 +42,7 @@ def save_image(name, gt, image=None, highlight=False):
     else:
         gt = 255 * gt / (gt.max() + 0.001)
 
-    image = np.ubyte(0.5 * gt + 0.5 * image)
+    image = np.ubyte(0.3 * gt + 0.7 * image)
     plt.clf()
     # plt.imshow(image)
     plt.imsave(name, image)  # 必须使用plt，才可以显示彩色的

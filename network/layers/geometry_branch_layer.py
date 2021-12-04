@@ -83,7 +83,7 @@ class GeometryBranch(Layer):
         x = _call(self.dconv_order_seg3, x)
         x = _call(self.dconv_order_seg2, x + s2)
         x = _call(self.dconv_order_seg1, x + s1)
-        order_segment = _call(self.softmax, x)
+        order_segmentation = _call(self.softmax, x)
 
         # generate Localization Map
         q = _call(self.conv_loc_map1, inputs)
@@ -91,6 +91,6 @@ class GeometryBranch(Layer):
         localization_map = _call(self.sigmoid, q)
 
         # multiply S[B,H,W,N] * Q[B,H,W,1] => [B,H,W,N]
-        order_map = order_segment * localization_map  # multiply together
+        # order_map = order_segmentation * localization_map  # multiply together
 
-        return order_map, localization_map, order_segment
+        return localization_map, order_segmentation

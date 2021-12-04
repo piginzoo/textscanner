@@ -75,7 +75,7 @@ class ImageLabelLoader:
         # logger.debug("[%s] loaded %d data", name, len(images))
 
         return images, {'character_segmentation': batch_cs,
-                        'order_map': batch_om,
+                        'order_segmentation': batch_os,
                         'localization_map': batch_lm,
                         'label_ids': label_ids}
 

@@ -35,10 +35,10 @@ class TextScannerModel(Model):
         fcn_features = _call(self.fcn, inputs)
         character_segmentation = _call(self.class_branch, fcn_features)
 
-        order_map, localization_map, _ = _call(self.geometry_branch, fcn_features)
+        localization_map, order_segmentation = _call(self.geometry_branch, fcn_features)
 
         return {'character_segmentation': character_segmentation,
-                'order_map': order_map,
+                'order_segmentation': order_segmentation,
                 'localization_map': localization_map}
 
     def localization_map_loss(self):
@@ -50,14 +50,19 @@ class TextScannerModel(Model):
         return smoothL1
 
     def comile_model(self):
+        # Lc, Lo, Ls, Lm are the losses for:(refer from paper)
+        # - localization map,
+        # - order segmentation,
+        # - text segmentation and
+        # - mutual supervision loss
         losses = {'character_segmentation': 'categorical_crossentropy',
-                  'order_map': 'categorical_crossentropy',
+                  'order_segmentation': 'categorical_crossentropy',
                   'localization_map': self.localization_map_loss()}
         loss_weights = {'character_segmentation': 1,
-                        'order_map': 10,
+                        'order_segmentation': 10,
                         'localization_map': 10}
         metrics = {'character_segmentation':['categorical_accuracy'],
-                   'order_map':['categorical_accuracy'],
+                   'order_segmentation':['categorical_accuracy'],
                    'localization_map':['binary_accuracy']}
 
         self.compile(Adam(),
